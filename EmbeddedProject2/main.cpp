@@ -1,12 +1,5 @@
 #include "main.h"
 
-/*
-void SysTick_Handler(void)
-{
-	HAL_IncTick();
-	HAL_SYSTICK_IRQHandler();
-}//*/
-
 void SystemClock_Config(void)
 {
 	RCC_ClkInitTypeDef clkinitstruct = { 0 };
@@ -80,7 +73,7 @@ static void Error_Handler(void)
 {
 	/* Turn LED_RED on */
 	//BSP_LED_On(LED_RED);
-	HAL_GPIO_WritePin(LED_BUS, LED_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED_BUS, LED_ERROR_PIN, GPIO_PIN_SET);
 	while (1)
 	{
 	}
@@ -91,17 +84,26 @@ int main(void)
 	HAL_Init();
 	SystemClock_Config();
 
-	//__GPIOA_CLK_ENABLE();
-	/*
-	GPIO_InitTypeDef GPIO_InitStructure = { 0 };
-	GPIO_InitStructure.Pin = LED_PIN;
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_LOW;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(LED_BUS, &GPIO_InitStructure);
-	//*/
+	__GPIOC_CLK_ENABLE();
 	
-	//*
+
+	GPIO_OK_InitStructure.Pin = LED_OK_PIN;
+
+	GPIO_OK_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_OK_InitStructure.Speed = GPIO_SPEED_HIGH;
+	GPIO_OK_InitStructure.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(LED_BUS, &GPIO_OK_InitStructure);
+
+	GPIO_ERROR_InitStructure.Pin = LED_ERROR_PIN;
+
+	GPIO_ERROR_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_ERROR_InitStructure.Speed = GPIO_SPEED_HIGH;
+	GPIO_ERROR_InitStructure.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(LED_BUS, &GPIO_ERROR_InitStructure);
+
+	
+	// UART
+	//__GPIOA_CLK_ENABLE();
 	UartHandle.Instance = USARTx;
 
 	UartHandle.Init.BaudRate = 9600;
@@ -112,7 +114,13 @@ int main(void)
 	UartHandle.Init.Mode = UART_MODE_TX_RX;
 	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
 	
-	printf("Run!\n");
+	if (HAL_UART_Init(&UartHandle) != HAL_OK)
+	{
+	  /* Initialization Error */
+		Error_Handler();
+	}
+	
+	printf("Run!\r\n");
 
 	//USBD_Init();
 	//USBD_Register
@@ -120,29 +128,21 @@ int main(void)
 	//HAL_PCD_EP_Open()
 
 	
-//	if (HAL_UART_DeInit(&UartHandle) != HAL_OK)
-//	{
-//		// Initialization Error
-//		Error_Handler();
-//	}
-	
-	if (HAL_UART_Init(&UartHandle) != HAL_OK)
-	{
-		// Initialization Error
-		Error_Handler();
-	}//*/
+
 	
 	int step = 0;
 
 	for (;;)
 	{
-		HAL_GPIO_WritePin(LED_BUS, LED_PIN, GPIO_PIN_SET);
+		//if (HAL_UART_Transmit(&UartHandle, (uint8_t *)"+", 1, 1000) != HAL_OK)
+		//	Error_Handler();
+		HAL_GPIO_WritePin(LED_BUS, LED_OK_PIN, GPIO_PIN_SET);
 		HAL_Delay(500);
 		
-		HAL_GPIO_WritePin(LED_BUS, LED_PIN, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_BUS, LED_OK_PIN, GPIO_PIN_RESET);
 		HAL_Delay(500);
 		
 		//*
-		printf("Step: %d\n", ++step);
+		printf("Step: %d\r\n", ++step);
 	}
 }
