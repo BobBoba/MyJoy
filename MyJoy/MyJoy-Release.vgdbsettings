@@ -10,7 +10,7 @@
     <EmbeddedProfileFile>stm32.xml</EmbeddedProfileFile>
   </Project>
   <Build xsi:type="com.visualgdb.build.msbuild">
-    <ProjectFile>EmbeddedProject2.vcxproj</ProjectFile>
+    <ProjectFile>MyJoy.vcxproj</ProjectFile>
     <ParallelJobCount>0</ParallelJobCount>
   </Build>
   <Debug xsi:type="com.visualgdb.debug.embedded">

@@ -23,6 +23,14 @@
   <FrameworkProperties>
     <Entries>
       <KeyValue>
+        <Key>com.sysprogs.bspoptions.stm32.usb.devclass</Key>
+        <Value>CDC</Value>
+      </KeyValue>
+      <KeyValue>
+        <Key>com.sysprogs.bspoptions.stm32.usb.speed</Key>
+        <Value>HS</Value>
+      </KeyValue>
+      <KeyValue>
         <Key>com.sysprogs.bspoptions.stm32.hal_legacy</Key>
         <Value>USE_HAL_LEGACY </Value>
       </KeyValue>
@@ -33,14 +41,6 @@
       <KeyValue>
         <Key>com.sysprogs.bspoptions.stackheap.heapsize</Key>
         <Value>8192</Value>
-      </KeyValue>
-      <KeyValue>
-        <Key>com.sysprogs.bspoptions.stm32.usb.devclass</Key>
-        <Value>CDC</Value>
-      </KeyValue>
-      <KeyValue>
-        <Key>com.sysprogs.bspoptions.stm32.usb.speed</Key>
-        <Value>FS</Value>
       </KeyValue>
     </Entries>
   </FrameworkProperties>
