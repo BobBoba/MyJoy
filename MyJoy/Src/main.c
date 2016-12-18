@@ -182,7 +182,7 @@ int main(void)
 	while (1)
 	{
 	  
-		HAL_Delay(1000);
+		HAL_Delay(500);
 		++step;
 		//HAL_ADC_PollForConversion(&hadc1, 1000);
 		int32_t adc_y = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
@@ -204,12 +204,12 @@ int main(void)
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
 		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
-		/*
-		printf("[%d] minY/maxY:%d/%d, adc_y: %d\r\n", 
+		//*
+		printf("[%d] minY/maxY:%d/%d, adc_y: %.1f%%\r\n", 
 			step,
 			minY,
 			maxY,
-			adc_y);
+			adc_y / 32768.0 * 100.0);
 	  //*/
 	  
 			  /* USER CODE END WHILE */
