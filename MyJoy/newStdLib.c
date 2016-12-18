@@ -168,7 +168,8 @@ int _read(int file, char *ptr, int len) {
 #elif STDIN_USART == 3
 			while ((USART3->SR & USART_FLAG_RXNE) == (uint16_t)RESET) {}
 			char c = (char)(USART3->DR & (uint16_t)0x01FF);
-#else#error define STDIN_USART wwith value from 1 to 3
+#else
+#error define STDIN_USART wwith value from 1 to 3
 #endif
 			*ptr++ = c;
 			num++;

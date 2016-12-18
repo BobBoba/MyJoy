@@ -47,12 +47,17 @@
 
 /* USER CODE BEGIN Includes */
 #include "stm32f1xx_hal.h"
-#include "usb_device.h"
+//#include "usb_device.h"
+#include "stm32f1xx_hal_dma.h"
+#include "stm32f1xx_hal_usart.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
+#define FIXED_STACK_SIZE 4096
+#define FIXED_HEAP_SIZE 8192
+
 #define ACTIVE_UART 1
 #define STDIN_USART ACTIVE_UART
 #define STDOUT_USART ACTIVE_UART
