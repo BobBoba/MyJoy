@@ -59,7 +59,6 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 extern USBD_HandleTypeDef hUsbDeviceFS;
 USBD_CUSTOM_HID_ItfTypeDef  USBD_CustomHID_fops_FS;
-uint8_t USB_TX_Buffer[4];
 
 #define ADS1115_I2C_ADDRESS        0x48 //(1001000)
 
@@ -111,8 +110,11 @@ PUTCHAR_PROTOTYPE
 
 struct joystick_report_t
 {
-	uint8_t reportId;
-	uint16_t throttle;
+	//uint8_t reportId;
+	int8_t throttle;
+	int8_t x;
+	int8_t y;
+	int8_t hat_and_buttons;
 };
 
 /* USER CODE END 0 */
@@ -143,11 +145,6 @@ int main(void)
 	
 
 	printf("-=[ Run! ]=-\r\n");
-	
-	USB_TX_Buffer[0] = 0;
-	USB_TX_Buffer[1] = 15;
-	USB_TX_Buffer[2] = 0;
-	USB_TX_Buffer[3] = 15;
 	
 	if (HAL_ADC_Start(&hadc1) != HAL_OK)
 	{
@@ -187,12 +184,12 @@ int main(void)
 		
 		//uint16_t x = val / 16;
 		
-		struct joystick_report_t report = {0x01, val/16};
-		printf("[%d] step: %u, x:%d\r\n", step, val/16);
+		struct joystick_report_t report = { 0, 1, val / 16, 3};
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
-		int r = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
+		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
+		printf("[%d] val: %d\r\n", step, val);
 	  
 	  
   /* USER CODE END WHILE */
