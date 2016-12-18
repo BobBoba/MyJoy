@@ -109,79 +109,10 @@ PUTCHAR_PROTOTYPE
 	return ch;
 }
 
-struct gamepad_report_t
+struct joystick_report_t
 {
-	uint16_t buttons;
-	int8_t left_x;
-	int8_t left_y;
-	int8_t right_x;
-	int8_t right_y;
-};
-
-char ReportDescriptor[61] = {
-	0x05,
-	0x01,                    // USAGE_PAGE (Generic Desktop)
-	0x09,
-	0x04,                    // USAGE (Joystick)
-	0xa1,
-	0x01,                    // COLLECTION (Application)
-	0x85,
-	0x01,                    //   REPORT_ID (1)
-	0xa1,
-	0x02,                    //   COLLECTION (Logical)
-	0x09,
-	0x32,                    //     USAGE (Z)
-	0x09,
-	0x31,                    //     USAGE (Y)
-	0x09,
-	0x30,                    //     USAGE (X)
-	0x15,
-	0x00,                    //     LOGICAL_MINIMUM (0)
-	0x26,
-	0xff,
-	0x00,					//     LOGICAL_MAXIMUM (255)
-	0x35,
-	0x00,                    //     PHYSICAL_MINIMUM (0)
-	0x46,
-	0xff,
-	0x00,					//     PHYSICAL_MAXIMUM (255)
-	0x75,
-	0x08,                    //     REPORT_SIZE (8)
-	0x95,
-	0x03,                    //     REPORT_COUNT (3)
-	0x81,
-	0x02,                    //     INPUT (Data,Var,Abs)
-	0xc0,                          //   END_COLLECTION
-    
-	0x85,
-	0x02,                    // REPORT_ID (2)
-    
-	0xa1,
-	0x02,                    //   COLLECTION (Logical)
-	0x05,
-	0x09,                    //     USAGE_PAGE (Button)
-	0x29,
-	0x02,                    //     USAGE_MAXIMUM (Button 2)
-	0x19,
-	0x01,                    //     USAGE_MINIMUM (Button 1)
-	0x95,
-	0x02,                    //     REPORT_COUNT (2)
-	0x75,
-	0x01,                    //     REPORT_SIZE (1)
-	0x25,
-	0x01,                    //     LOGICAL_MAXIMUM (1)
-	0x15,
-	0x00,                    //     LOGICAL_MINIMUM (0)
-	0x81,
-	0x02,                    //     Input (Data, Variable, Absolute)
-	0x95,
-	0x01,                    //     Report Count (1)
-	0x75,
-	0x06,                    //     Report Size (6)
-	0x81,
-	0x01,                    //     Input (Constant) for padding    
-	0xc0,                          //   END_COLLECTION
-	0xc0                           // END_COLLECTION
+	uint8_t reportId;
+	uint16_t throttle;
 };
 
 /* USER CODE END 0 */
@@ -249,15 +180,19 @@ int main(void)
 	while (1)
 	{
 	  
-		HAL_Delay(1000);
+		HAL_Delay(500);
 		++step;
 		//HAL_ADC_PollForConversion(&hadc1, 1000);
 		uint32_t val = HAL_ADC_GetValue(&hadc1);
-		printf("[%d] step: %d\r\n", step, val);
+		
+		//uint16_t x = val / 16;
+		
+		struct joystick_report_t report = {0x01, val/16};
+		printf("[%d] step: %u, x:%d\r\n", step, val/16);
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
-		//int r = USBD_HID_SendReport(&hUsbDeviceFS, USB_TX_Buffer, 4);
+		int r = USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
 	  
 	  
   /* USER CODE END WHILE */
