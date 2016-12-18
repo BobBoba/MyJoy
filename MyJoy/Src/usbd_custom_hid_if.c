@@ -93,15 +93,13 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x15, 0x00,                    // LOGICAL_MINIMUM (0)
 	0x09, 0x04,                    // USAGE (Joystick)
 	0xa1, 0x01,                    // COLLECTION (Application)
-	
 	0x05, 0x02,                    //   USAGE_PAGE (Simulation Controls)
 	0x09, 0xbb,                    //   USAGE (Throttle)
-	0x15, 0x81,                    //   LOGICAL_MINIMUM (-127)
-	0x25, 0x7f,                    //   LOGICAL_MAXIMUM (127)
-	0x75, 0x08,                    //   REPORT_SIZE (8)
+	0x16, 0x00, 0x80,              //   LOGICAL_MINIMUM (-32768)
+	0x26, 0xff, 0x7f,              //   LOGICAL_MAXIMUM (32767)
+	0x75, 0x10,                    //   REPORT_SIZE (16)
 	0x95, 0x01,                    //   REPORT_COUNT (1)
 	0x81, 0x02,                    //   INPUT (Data,Var,Abs)
-	
 	0x05, 0x01,                    //   USAGE_PAGE (Generic Desktop)
 	0x09, 0x01,                    //   USAGE (Pointer)
 	0xa1, 0x00,                    //   COLLECTION (Physical)
@@ -109,7 +107,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x09, 0x31,                    //     USAGE (Y)
 	0x95, 0x02,                    //     REPORT_COUNT (2)
 	0x81, 0x02,                    //     INPUT (Data,Var,Abs)
-	0xc0,                          //   END_COLLECTION	
+	0xc0,                          //   END_COLLECTION
 	0x09, 0x39,                    //   USAGE (Hat switch)
 	0x15, 0x00,                    //   LOGICAL_MINIMUM (0)
 	0x25, 0x03,                    //   LOGICAL_MAXIMUM (3)
@@ -119,7 +117,6 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x75, 0x04,                    //   REPORT_SIZE (4)
 	0x95, 0x01,                    //   REPORT_COUNT (1)
 	0x81, 0x02,                    //   INPUT (Data,Var,Abs)
-	
 	0x05, 0x09,                    //   USAGE_PAGE (Button)
 	0x19, 0x01,                    //   USAGE_MINIMUM (Button 1)
 	0x29, 0x04,                    //   USAGE_MAXIMUM (Button 4)

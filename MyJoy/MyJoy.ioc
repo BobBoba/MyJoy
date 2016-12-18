@@ -1,10 +1,18 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-12\#ChannelRegularConversion=ADC_CHANNEL_0
 ADC1.ContinuousConvMode=ENABLE
-ADC1.IPParameters=Rank-12\#ChannelRegularConversion,Channel-12\#ChannelRegularConversion,SamplingTime-12\#ChannelRegularConversion,NbrOfConversionFlag,master,ContinuousConvMode
+ADC1.DataAlign=ADC_DATAALIGN_RIGHT
+ADC1.DiscontinuousConvMode=DISABLE
+ADC1.EnableAnalogWatchDog=false
+ADC1.EnableRegularConversion=ENABLE
+ADC1.ExternalTrigConv=ADC_SOFTWARE_START
+ADC1.IPParameters=Rank-12\#ChannelRegularConversion,Channel-12\#ChannelRegularConversion,SamplingTime-12\#ChannelRegularConversion,NbrOfConversionFlag,master,ContinuousConvMode,DataAlign,ScanConvMode,DiscontinuousConvMode,EnableRegularConversion,NbrOfConversion,ExternalTrigConv,InjNumberOfConversion,EnableAnalogWatchDog
+ADC1.InjNumberOfConversion=0
+ADC1.NbrOfConversion=1
 ADC1.NbrOfConversionFlag=1
 ADC1.Rank-12\#ChannelRegularConversion=1
 ADC1.SamplingTime-12\#ChannelRegularConversion=ADC_SAMPLETIME_1CYCLE_5
+ADC1.ScanConvMode=ADC_SCAN_DISABLE
 ADC1.master=1
 File.Version=6
 KeepUserPlacement=false
