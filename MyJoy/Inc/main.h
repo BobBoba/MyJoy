@@ -53,7 +53,6 @@
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
-
 /* USER CODE BEGIN Private defines */
 #define FIXED_STACK_SIZE 4096
 #define FIXED_HEAP_SIZE 8192
