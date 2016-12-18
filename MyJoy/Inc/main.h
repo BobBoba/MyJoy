@@ -50,9 +50,14 @@
 //#include "usb_device.h"
 #include "stm32f1xx_hal_dma.h"
 #include "stm32f1xx_hal_usart.h"
+#include "ads111x_access.h"
+#include "Ads1115_types.h"
+#include "Ads1115.h"
+
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/
+
 /* USER CODE BEGIN Private defines */
 #define FIXED_STACK_SIZE 4096
 #define FIXED_HEAP_SIZE 8192
