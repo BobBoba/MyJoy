@@ -9,7 +9,9 @@
 
 void ads111x_select(unsigned char);
 
-unsigned short ads111x_read();
+// -1 on error
+unsigned int ads111x_read();
+
 unsigned short ads111x_read_IT();
 
 HAL_StatusTypeDef ads111x_write_pointer(  unsigned char RegisterAddress);

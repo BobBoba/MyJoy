@@ -51,7 +51,6 @@ Global
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|Mixed Platforms.ActiveCfg = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|Mixed Platforms.Build.0 = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
-		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|Win32.ActiveCfg = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|Win32.Build.0 = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|x64.ActiveCfg = Debug|VisualGDB
@@ -68,7 +67,6 @@ Global
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|Mixed Platforms.ActiveCfg = Debug|VisualGDB
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|Mixed Platforms.Build.0 = Debug|VisualGDB
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
-		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|Win32.ActiveCfg = Debug|VisualGDB
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|Win32.Build.0 = Debug|VisualGDB
 		{7CD7D8A3-79D7-4F3B-820E-791671380BC4}.Debug|x64.ActiveCfg = Debug|VisualGDB

@@ -184,6 +184,7 @@ int SetChannel(enum InputMultiplexer channel)
 	return ads111x_read();
 
 }
+// -1 on error
 int GetMeasure(int channel)
 {
 	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
@@ -192,7 +193,7 @@ int GetMeasure(int channel)
 		
 		HAL_I2C_DeInit(&hi2c1);
 		HAL_I2C_Init(&hi2c1);
-		return 0;
+		return -1;
 	}
 	
 	//SetInputMultiplexer(channel);
@@ -346,7 +347,11 @@ int main(void)
 	}
 
 	for (int a = 0; a < _num_axis; ++a)
-		GetMeasure(a);
+	{
+		int r = GetMeasure(a);
+		if (r == -1)
+			printf("GetMeasure(%d) failed\r\n", a);
+	}
 	//SetProgrammableGain(FULL_SCALE_4096_MV_E);
 	//SetDataRate(DATA_RATE_64_SPS_E);
 	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
@@ -382,6 +387,9 @@ int main(void)
 		printf("%6d ", initial[a]);
 	}
 	printf("\r\n");
+	
+	// throttle does not started from center
+	min[Th] = max[Th] = initial[Th];
 
 //	int initialX =	GetMeasure(0);//a3
 //	int initialY =	GetMeasure(1);//a0
@@ -394,7 +402,7 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	int step = -1;
-	int printOn = 20;
+	int printOn = 50;
 	while (1)
 	{
 	  
@@ -433,28 +441,49 @@ int main(void)
 		{
 			int iter = GetMeasure(a);
 			
-			if (step % printOn == 0)
-				printf("%6d ", iter);
+			if (iter == -1)
+				printf("\r\nGetMeasure(%d) failed\r\n", a);
 			
-			iter -= initial[a];
 			if (step % printOn == 0)
-				printf("%6d ", iter);
+				printf("%6d", iter);
+			
+			if (a != Th)
+			{				
+			
+				iter -= initial[a];
+				if (step % printOn == 0)
+					printf("%6d", iter);
+			}
 			
 			if (iter < min[a])
 				min[a] = iter;
 			if (step % printOn == 0)
-				printf("%6d ", min[a]);
+				printf("%6d", min[a]);
 			
 			if (iter > max[a])
 				max[a] = iter;
 			if (step % printOn == 0)
-				printf("%6d ", max[a]);
-		
-			if (iter > 0)
-				iter = iter * 32767 / max[a];
-			else if (iter < 0)
-				iter = iter * 32768 / -min[a];
+				printf("%6d", max[a]);
 			
+			if (a == Th)
+			{
+				iter -= min[a]; // bind to zero
+				iter -= (max[a] - min[a])/2; // switch to pos/neg legs
+				
+				int M = (max[a] - min[a]) / 2;
+				int m = -(max[a] - min[a]) / 2;
+				if (iter > 0)
+					iter = iter * 32767 / M;
+				else if (iter < 0)
+					iter = -iter * 32768 / m;
+			}
+			else 
+			{
+				if (iter > 0)
+					iter = iter * 32767 / max[a];
+				else if (iter < 0)
+					iter = iter * 32768 / -min[a];
+			}
 			if (step % printOn == 0)
 				printf("%6d|", iter);
 			

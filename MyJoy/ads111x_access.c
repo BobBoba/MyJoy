@@ -15,7 +15,7 @@ void ads111x_select(unsigned char adr)
 }
 
 
-unsigned short ads111x_read()
+unsigned int ads111x_read()
 {
 
 	int ret;
@@ -25,7 +25,7 @@ unsigned short ads111x_read()
 	ret = HAL_I2C_Master_Receive(&hi2c1, ads111x_adr, (unsigned char*)&Data, 2, 100);
 	if (ret != HAL_OK)
 	{
-		return ret;
+		return -1;
 	}
 
 	  //while( ReceiveComplete == 0);
