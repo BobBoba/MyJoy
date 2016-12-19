@@ -142,7 +142,7 @@ void ConfiugureReadyMode()
 
 int ConfigureAdsChannel(enum InputMultiplexer chanel, enum ProgrammableGain scale, enum DataRate datarate, enum Mode mode)
 {
-	if (HAL_OK != ads111x_write_pointer(1))
+	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
 	{
 		printf("ads111x_write_pointer(1) failed\r\n");
 		return 0;
@@ -155,22 +155,98 @@ int ConfigureAdsChannel(enum InputMultiplexer chanel, enum ProgrammableGain scal
 	return 0;
 }
 
-int GetMeasure()
+int SetChannel(enum InputMultiplexer channel)
 {
+	return 0;
 	if (HAL_OK != ads111x_write_pointer(1))
 	{
 		printf("ads111x_write_pointer(1) failed\r\n");
 		return 0;
 	}
 	
-	SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
+	SetInputMultiplexer(channel);
 
 	//  HAL_Delay(4);
 
-	while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
-		;   
+	//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
+	//	;   
   
 	ads111x_write_pointer(0);
+	return ads111x_read();
+
+}
+int GetMeasure(int channel)
+{
+	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
+	{
+		printf("ads111x_write_pointer(1) failed\r\n");
+		return 0;
+	}
+	
+	//SetInputMultiplexer(channel);
+	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
+	
+	uint16_t Value = 0;
+	uint16_t OldValue;
+	
+	// Start with default values
+	Value = ADS1015_REG_CONFIG_CQUE_NONE    | // Disable the comparator (default val)
+	                  ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
+	                  ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
+	                  ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
+	                  ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
+	                  ADS1015_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
+
+	                    // Set PGA/voltage range
+	Value |= GAIN_ONE;	
+
+	//OldValue = ads111x_read();
+
+	    // 
+	    // Input multiplexer configuration (ADS1115 only) 
+	    // 
+	
+  
+	switch (channel)
+	{
+	case 0:
+		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_0;
+		break;
+	case 1:
+		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_1;
+		break;
+	case 2:
+		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_2;
+		break;
+	case 3:
+		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_3;
+		break;
+	}
+	
+	//
+//	switch (CONTINUOUS_CONVERSION_MODE_E)
+//	{
+//	case POWER_DOWN_SINGLE_SHOT_MODE_E: 
+//		Value = OldValue | MODE_MASK; 
+//		break;
+//	case CONTINUOUS_CONVERSION_MODE_E: 
+//		Value = OldValue & ~MODE_MASK;
+//		break;
+//	}
+	Value |= ADS1015_REG_CONFIG_OS_SINGLE;
+  
+
+	ads111x_write_rr(Value, 1);
+	
+	
+	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
+
+	  HAL_Delay(8);
+
+	//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
+	//	;   
+  
+	ads111x_write_pointer(ADS1015_REG_POINTER_CONVERT);
 	return ads111x_read();
 }
 
@@ -192,19 +268,19 @@ int main(void)
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	HAL_Init();
 
-  /* Configure the system clock */
-  SystemClock_Config();
+	  /* Configure the system clock */
+	SystemClock_Config();
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_USART1_UART_Init();
-  MX_I2C1_Init();
-  MX_USB_DEVICE_Init();
-  MX_ADC1_Init();
+	  /* Initialize all configured peripherals */
+	MX_GPIO_Init();
+	MX_USART1_UART_Init();
+	MX_I2C1_Init();
+	MX_USB_DEVICE_Init();
+	MX_ADC1_Init();
 
-  /* USER CODE BEGIN 2 */
+	  /* USER CODE BEGIN 2 */
 	
 
 	printf("-=[ Run! ]=-\r\n");
@@ -240,11 +316,23 @@ int main(void)
 	printf("i2cReady: %d\r\n", i2cReady);
 
 	//ConfiugureReadyMode();
-	ConfigureAdsForX();
-	//ConfigureAdsForY();
-	//ConfigureAdsForZ();
-	//ConfigureAdsForTh();
+//	ConfigureAdsForX();
+//	ConfigureAdsForY();
+//	ConfigureAdsForZ();
+//	ConfigureAdsForTh();
+	if (HAL_OK != ads111x_write_pointer(1))
+	{
+		printf("ads111x_write_pointer(1) failed\r\n");
+		return 0;
+	}
 
+	SetProgrammableGain(FULL_SCALE_4096_MV_E);
+	SetDataRate(DATA_RATE_64_SPS_E);
+	SetMode(CONTINUOUS_CONVERSION_MODE_E);
+	for (int i = 0; i < 4; ++i)
+	{		
+		SetInputMultiplexer(UNIPOLAR_AIN1_E + i);
+	}
 		
   /* USER CODE END 2 */
 
@@ -254,7 +342,7 @@ int main(void)
 	while (1)
 	{
 	  
-		HAL_Delay(500);
+		//HAL_Delay(500);
 		++step;
 		printf("[%d] ", step);
 		//HAL_ADC_PollForConversion(&hadc1, 1000);
@@ -269,10 +357,14 @@ int main(void)
 //			adc_y2, 
 //			adc_y3,
 //			adc_y4);
-		int adsX = GetMeasure();
-		int adsY = GetMeasure();
-		int adsZ = GetMeasure();
-		int adsTh = GetMeasure();
+		
+		
+		
+		
+		int adsX =	GetMeasure(0);//a3
+		int adsY =	GetMeasure(1);//a0
+		int adsZ =	GetMeasure(2);//a1...
+		int adsTh = GetMeasure(3);//a2
 
 		
 		printf("ads1115: %d %d %d %d ", adsX, adsY, adsZ, adsTh);
@@ -289,7 +381,7 @@ int main(void)
 		
 		//uint16_t x = val / 16;
 		
-		struct joystick_report_t report = { 0, 1, adc_y, 3 };
+		struct joystick_report_t report = { (int16_t)adsTh, (int16_t)adsX, (int16_t)adsY, 0};
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
@@ -316,87 +408,87 @@ int main(void)
 void SystemClock_Config(void)
 {
 
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_PeriphCLKInitTypeDef PeriphClkInit;
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-    /**Initializes the CPU, AHB and APB busses clocks 
-    */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	    /**Initializes the CPU, AHB and APB busses clocks 
+	    */
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+	RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+	RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
-    /**Initializes the CPU, AHB and APB busses clocks 
-    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+	    /**Initializes the CPU, AHB and APB busses clocks 
+	    */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+	                            | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_USB;
-  PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC | RCC_PERIPHCLK_USB;
+	PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4;
+	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
-    /**Configure the Systick interrupt time 
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+	    /**Configure the Systick interrupt time 
+	    */
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
-    /**Configure the Systick 
-    */
-  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+	    /**Configure the Systick 
+	    */
+	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
-  /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+	  /* SysTick_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
 /* ADC1 init function */
 static void MX_ADC1_Init(void)
 {
 
-  ADC_ChannelConfTypeDef sConfig;
+	ADC_ChannelConfTypeDef sConfig;
 
-    /**Common config 
-    */
-  hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  if (HAL_ADC_Init(&hadc1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	    /**Common config 
+	    */
+	hadc1.Instance = ADC1;
+	hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+	hadc1.Init.ContinuousConvMode = ENABLE;
+	hadc1.Init.DiscontinuousConvMode = DISABLE;
+	hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+	hadc1.Init.NbrOfConversion = 1;
+	if (HAL_ADC_Init(&hadc1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
-    /**Configure Regular Channel 
-    */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	    /**Configure Regular Channel 
+	    */
+	sConfig.Channel = ADC_CHANNEL_0;
+	sConfig.Rank = 1;
+	sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
 }
 
@@ -404,19 +496,19 @@ static void MX_ADC1_Init(void)
 static void MX_I2C1_Init(void)
 {
 
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 400000;
-  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	hi2c1.Instance = I2C1;
+	hi2c1.Init.ClockSpeed = 400000;
+	hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+	hi2c1.Init.OwnAddress1 = 0;
+	hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+	hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+	hi2c1.Init.OwnAddress2 = 0;
+	hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+	hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+	if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
 }
 
@@ -424,18 +516,18 @@ static void MX_I2C1_Init(void)
 static void MX_USART1_UART_Init(void)
 {
 
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
+	huart1.Instance = USART1;
+	huart1.Init.BaudRate = 115200;
+	huart1.Init.WordLength = UART_WORDLENGTH_8B;
+	huart1.Init.StopBits = UART_STOPBITS_1;
+	huart1.Init.Parity = UART_PARITY_NONE;
+	huart1.Init.Mode = UART_MODE_TX_RX;
+	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+	if (HAL_UART_Init(&huart1) != HAL_OK)
+	{
+		Error_Handler();
+	}
 
 }
 
@@ -450,9 +542,9 @@ static void MX_GPIO_Init(void)
 {
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 }
 

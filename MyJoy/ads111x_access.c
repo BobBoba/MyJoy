@@ -122,8 +122,8 @@ void ads111x_write_rr(unsigned short Data, unsigned char reg)
 	unsigned char data[3];
   
 	data[0] = reg;
-	data[2] = Data & 0xFF;
 	data[1] = Data >> 8;
+	data[2] = Data & 0xFF;
    
 	ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, (unsigned char*)&data, 3, 1000);
 	if (ret != HAL_OK)

@@ -53,6 +53,7 @@
 #include "ads111x_access.h"
 #include "Ads1115_types.h"
 #include "Ads1115.h"
+#include "Adafruit_ADS1015.h"
 
 /* USER CODE END Includes */
 
