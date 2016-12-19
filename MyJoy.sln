@@ -4,8 +4,6 @@ VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinUSB app", "WinUSB app\WinUSB app.vcxproj", "{E333C929-BC90-4549-B775-444CED09FF46}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EmbeddedProject2", "EmbeddedProject2\EmbeddedProject2.vcxproj", "{27969276-E9A7-478B-8F54-9E391A231692}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple", "simple\simple.vcxproj", "{562E19E3-1135-40DC-8F3F-18D6B2CEE968}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USB_CDC_demo", "USB_CDC_demo\USB_CDC_demo.vcxproj", "{7CD7D8A3-79D7-4F3B-820E-791671380BC4}"
@@ -48,23 +46,6 @@ Global
 		{E333C929-BC90-4549-B775-444CED09FF46}.Release|Win32.Build.0 = Release|Win32
 		{E333C929-BC90-4549-B775-444CED09FF46}.Release|x64.ActiveCfg = Release|x64
 		{E333C929-BC90-4549-B775-444CED09FF46}.Release|x64.Build.0 = Release|x64
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|ARM.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|ARM64.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|Mixed Platforms.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|Mixed Platforms.Build.0 = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|Win32.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|Win32.Build.0 = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Debug|x64.ActiveCfg = Debug|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|ARM.ActiveCfg = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|ARM64.ActiveCfg = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|Mixed Platforms.ActiveCfg = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|Mixed Platforms.Build.0 = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|VisualGDB.Build.0 = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|Win32.ActiveCfg = Release|VisualGDB
-		{27969276-E9A7-478B-8F54-9E391A231692}.Release|x64.ActiveCfg = Release|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|ARM.ActiveCfg = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|ARM64.ActiveCfg = Debug|VisualGDB
 		{562E19E3-1135-40DC-8F3F-18D6B2CEE968}.Debug|Mixed Platforms.ActiveCfg = Debug|VisualGDB

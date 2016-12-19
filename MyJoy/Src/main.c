@@ -117,6 +117,15 @@ struct joystick_report_t
 };
 #pragma pack(pop)
 
+enum JoystickAxis
+{
+	X,
+	Y,
+	Z,
+	Th,
+	_num_axis
+};
+
 void ConfiugureReadyMode()
 {
 	ads111x_write_pointer(1);
@@ -179,26 +188,29 @@ int GetMeasure(int channel)
 {
 	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
 	{
-		printf("ads111x_write_pointer(1) failed\r\n");
+		printf("ads111x_write_pointer(1) failed, restarting i2c\r\n");
+		
+		HAL_I2C_DeInit(&hi2c1);
+		HAL_I2C_Init(&hi2c1);
 		return 0;
 	}
 	
 	//SetInputMultiplexer(channel);
 	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
 	
-	uint16_t Value = 0;
+	uint16_t config = 0;
 	uint16_t OldValue;
 	
 	// Start with default values
-	Value = ADS1015_REG_CONFIG_CQUE_NONE    | // Disable the comparator (default val)
-	                  ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
-	                  ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
-	                  ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
-	                  ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
-	                  ADS1015_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
+	config = ADS1015_REG_CONFIG_CQUE_NONE    | // Disable the comparator (default val)
+	        ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
+	        ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
+	        ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
+	        ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
+	        ADS1015_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
 
 	                    // Set PGA/voltage range
-	Value |= GAIN_ONE;	
+	config |= GAIN_ONE;	
 
 	//OldValue = ads111x_read();
 
@@ -210,16 +222,16 @@ int GetMeasure(int channel)
 	switch (channel)
 	{
 	case 0:
-		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_0;
+		config  |= ADS1015_REG_CONFIG_MUX_SINGLE_0;
 		break;
 	case 1:
-		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_1;
+		config  |= ADS1015_REG_CONFIG_MUX_SINGLE_1;
 		break;
 	case 2:
-		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_2;
+		config  |= ADS1015_REG_CONFIG_MUX_SINGLE_2;
 		break;
 	case 3:
-		Value  |= ADS1015_REG_CONFIG_MUX_SINGLE_3;
+		config  |= ADS1015_REG_CONFIG_MUX_SINGLE_3;
 		break;
 	}
 	
@@ -233,18 +245,18 @@ int GetMeasure(int channel)
 //		Value = OldValue & ~MODE_MASK;
 //		break;
 //	}
-	Value |= ADS1015_REG_CONFIG_OS_SINGLE;
+	config |= ADS1015_REG_CONFIG_OS_SINGLE;
   
 
-	ads111x_write_rr(Value, 1);
+	ads111x_write_rr(config, 1);
 	
 	
 	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
 
-	  HAL_Delay(8);
+	HAL_Delay(8);
 
-	//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
-	//	;   
+		//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
+		//	;   
   
 	ads111x_write_pointer(ADS1015_REG_POINTER_CONVERT);
 	return ads111x_read();
@@ -284,9 +296,11 @@ int main(void)
 	
 
 	printf("-=[ Run! ]=-\r\n");
+	printf("size(joystick_report_t): %d bytes\r\n", sizeof(struct joystick_report_t));
 	
 	if (HAL_ADC_Start(&hadc1) != HAL_OK)
 	{
+		printf("HAL_ADC_Start: failed\r\n");
 	  /* Start Error */
 		Error_Handler();
 	}
@@ -294,6 +308,7 @@ int main(void)
 		/* Run the ADC calibration */  
 	if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
 	{
+		printf("HAL_ADCEx_Calibration_Start: failed\r\n");
 	  /* Calibration Error */
 		Error_Handler();
 	}
@@ -303,50 +318,93 @@ int main(void)
 		//, (uint32_t *)aADCxConvertedValues, ADCCONVERTEDVALUES_BUFFER_SIZE
 		) != HAL_OK)
 	{
+		printf("HAL_ADC_Start: failed\r\n");
 	  /* Start Error */
 		Error_Handler();
 	}
 	
-	printf("size(joystick_report_t): %d\r\n", sizeof(struct joystick_report_t));
 	
 	uint32_t adc_initial_y = HAL_ADC_GetValue(&hadc1);
 	int32_t minY = 0, maxY = 0;
 	
-	HAL_StatusTypeDef i2cReady = HAL_I2C_IsDeviceReady(&hi2c1, ADS1115_REMOTE_ADR, 1000, 3000);
-	printf("i2cReady: %d\r\n", i2cReady);
+	if (HAL_I2C_IsDeviceReady(&hi2c1, ADS1115_REMOTE_ADR, 1000, 3000) != HAL_OK)
+	{
+		printf("HAL_I2C_IsDeviceReady: false\r\n");
+		/* Start Error */
+		Error_Handler();
+	}
 
 	//ConfiugureReadyMode();
 //	ConfigureAdsForX();
 //	ConfigureAdsForY();
 //	ConfigureAdsForZ();
 //	ConfigureAdsForTh();
-	if (HAL_OK != ads111x_write_pointer(1))
+	while (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
 	{
-		printf("ads111x_write_pointer(1) failed\r\n");
-		return 0;
+		printf("ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG) failed\r\n");
+		HAL_Delay(1000);
 	}
 
-	SetProgrammableGain(FULL_SCALE_4096_MV_E);
-	SetDataRate(DATA_RATE_64_SPS_E);
-	SetMode(CONTINUOUS_CONVERSION_MODE_E);
-	for (int i = 0; i < 4; ++i)
+	for (int a = 0; a < _num_axis; ++a)
+		GetMeasure(a);
+	//SetProgrammableGain(FULL_SCALE_4096_MV_E);
+	//SetDataRate(DATA_RATE_64_SPS_E);
+	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
+	//for (int i = 0; i < 4; ++i)
+	//{		
+		//SetInputMultiplexer(UNIPOLAR_AIN1_E + i);
+	//}
+	
+	const int middle = 10;
+	int initial[_num_axis], initial_array[middle][_num_axis], min[_num_axis], max[_num_axis], norm[_num_axis];
+	for (int i = 0; i < middle; ++i)
 	{		
-		SetInputMultiplexer(UNIPOLAR_AIN1_E + i);
+		//printf("initial x/y/z/th: ");
+		for (int a = 0; a < _num_axis; ++a)
+		{
+			initial_array[i][a] = GetMeasure(a);
+		
+			//printf("%6d ", initial_array[i][a]);	
+		}
+		//printf("\r\n");
+		//HAL_Delay(100);
 	}
+	
+	printf("initial axis values for x/y/z/th: ");
+	for (int a = 0; a < _num_axis; ++a)
+	{
+		initial[a] = min[a] = max[a] = norm[a] = 0;
+		for (int i = 0; i < middle; ++i)
+		{
+			initial[a] += initial_array[i][a];
+		}
+		initial[a] /= middle;
+		printf("%6d ", initial[a]);
+	}
+	printf("\r\n");
+
+//	int initialX =	GetMeasure(0);//a3
+//	int initialY =	GetMeasure(1);//a0
+//	int initialZ =	GetMeasure(2);//a1...
+//	int initialTh = GetMeasure(3);//a2
+
 		
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	int step = 0;
+	int step = -1;
+	int printOn = 20;
 	while (1)
 	{
 	  
-		//HAL_Delay(500);
+		//HAL_Delay(100);
 		++step;
-		printf("[%d] ", step);
+		
+		if (step % printOn == 0)
+			printf("[%4d] ", step / printOn);
 		//HAL_ADC_PollForConversion(&hadc1, 1000);
-		int32_t adc_y = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
+//		int32_t adc_y = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
 //		int32_t adc_y2 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
 //		int32_t adc_y3 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
 //		int32_t adc_y4 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
@@ -361,27 +419,52 @@ int main(void)
 		
 		
 		
-		int adsX =	GetMeasure(0);//a3
-		int adsY =	GetMeasure(1);//a0
-		int adsZ =	GetMeasure(2);//a1...
-		int adsTh = GetMeasure(3);//a2
-
+//		raw[X] = GetMeasure(0);//a3
+//		raw[Y] = GetMeasure(1);//a0
+//		raw[Z] = GetMeasure(2);//a1...
+//		raw[Th] = GetMeasure(3);//a2
+//
+//		if (step % printOn == 0)
+//			printf("ads1115 raw: %d %d %d %d ", raw[X], raw[Y], raw[Z], raw[Th]);
+//
+		if (step % printOn == 0)
+			printf("r/z/m/M/n: ");	
+		for (int a = 0; a < _num_axis; ++a)
+		{
+			int iter = GetMeasure(a);
+			
+			if (step % printOn == 0)
+				printf("%6d ", iter);
+			
+			iter -= initial[a];
+			if (step % printOn == 0)
+				printf("%6d ", iter);
+			
+			if (iter < min[a])
+				min[a] = iter;
+			if (step % printOn == 0)
+				printf("%6d ", min[a]);
+			
+			if (iter > max[a])
+				max[a] = iter;
+			if (step % printOn == 0)
+				printf("%6d ", max[a]);
 		
-		printf("ads1115: %d %d %d %d ", adsX, adsY, adsZ, adsTh);
-					
-		if (adc_y < minY)
-			minY = adc_y;
-		if (adc_y > maxY)
-			maxY = adc_y;
-		
-		if (adc_y > 0)
-			adc_y = adc_y * 32767 / maxY;
-		else if (adc_y < 0)
-			adc_y = adc_y * 32768 / -minY;
-		
+			if (iter > 0)
+				iter = iter * 32767 / max[a];
+			else if (iter < 0)
+				iter = iter * 32768 / -min[a];
+			
+			if (step % printOn == 0)
+				printf("%6d|", iter);
+			
+			norm[a] = iter;
+		}
 		//uint16_t x = val / 16;
+		//if (step % printOn == 0)
+		//	printf("norm: %d %d %d %d ", raw[X], raw[Y], raw[Z], raw[Th]);
 		
-		struct joystick_report_t report = { (int16_t)adsTh, (int16_t)adsX, (int16_t)adsY, 0};
+		struct joystick_report_t report = { (int16_t)norm[Th], (int16_t)norm[X], (int16_t)norm[Y], 0 };
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
@@ -397,7 +480,8 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-		printf("\r\n");
+		if (step % printOn == 0)
+			printf("\r\n");
 	}
   /* USER CODE END 3 */
 

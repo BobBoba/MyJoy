@@ -22,7 +22,7 @@ unsigned short ads111x_read()
 	unsigned short Data = 0;
 
 	ReceiveComplete = 0;
-	ret = HAL_I2C_Master_Receive(&hi2c1, ads111x_adr, (unsigned char*)&Data, 2, 1000);
+	ret = HAL_I2C_Master_Receive(&hi2c1, ads111x_adr, (unsigned char*)&Data, 2, 100);
 	if (ret != HAL_OK)
 	{
 		return ret;
@@ -60,7 +60,7 @@ HAL_StatusTypeDef ads111x_write_pointer(unsigned char RegisterAddress)
 	unsigned char Address = RegisterAddress;
 	TransmitComplete = 0;
 
-	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, &Address, 1, 1000);
+	HAL_StatusTypeDef ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, &Address, 1, 100);
 	if (ret != HAL_OK)
 	{
 	  // generation d'un stop alors
@@ -125,7 +125,7 @@ void ads111x_write_rr(unsigned short Data, unsigned char reg)
 	data[1] = Data >> 8;
 	data[2] = Data & 0xFF;
    
-	ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, (unsigned char*)&data, 3, 1000);
+	ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, (unsigned char*)&data, 3, 100);
 	if (ret != HAL_OK)
 		return ;
 
