@@ -77,7 +77,7 @@
 /*---------- -----------*/
 #define USBD_SUPPORT_USER_STRING     1
 /*---------- -----------*/
-#define USBD_DEBUG_LEVEL     3
+#define USBD_DEBUG_LEVEL     0
 /*---------- -----------*/
 #define USBD_SELF_POWERED     1
 /*---------- -----------*/

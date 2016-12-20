@@ -46,6 +46,7 @@
   /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
+#include <math.h>       /* cos */
 #include "stm32f1xx_hal.h"
 //#include "usb_device.h"
 #include "stm32f1xx_hal_dma.h"

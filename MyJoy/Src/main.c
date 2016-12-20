@@ -376,14 +376,14 @@ int main(void)
 	int initial[_num_axis], initial_array[middle][_num_axis], min[_num_axis], max[_num_axis], norm[_num_axis];
 	for (int i = 0; i < middle; ++i)
 	{		
-		//printf("initial x/y/z/th: ");
+		printf("initial x/y/z/th: ");
 		for (int a = 0; a < _num_axis; ++a)
 		{
 			initial_array[i][a] = GetMeasure(a);
 		
-			//printf("%6d ", initial_array[i][a]);	
+			printf("%6d ", initial_array[i][a]);	
 		}
-		//printf("\r\n");
+		printf("\r\n");
 		//HAL_Delay(100);
 	}
 	
@@ -423,6 +423,18 @@ int main(void)
 	int printOn = 1;
 	u_char debugAxis = 0;
 	u_char debugGpio = 0; 
+	
+//	int v = 0;
+//	int32_t radius = 32767;
+//	double angle = 0;
+//	while (1)
+//	{
+//		float x = cos((double)angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//		angle += 0.01; 
+//		report.x = x;
+//		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
+//	}
+	
 	while (1)
 	{
 	  
@@ -431,32 +443,10 @@ int main(void)
 		
 		if ((debugAxis || debugGpio) && step % printOn == 0)
 			printf("[%4d] ", step / printOn);
-		//HAL_ADC_PollForConversion(&hadc1, 1000);
-//		int32_t adc_y = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
-//		int32_t adc_y2 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
-//		int32_t adc_y3 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
-//		int32_t adc_y4 = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
-//		
-//		printf("[%d] %d %d %d %d\r\n", 
-//			step,
-//			adc_y,
-//			adc_y2, 
-//			adc_y3,
-//			adc_y4);
-		
-		
-		
-		
-//		raw[X] = GetMeasure(0);//a3
-//		raw[Y] = GetMeasure(1);//a0
-//		raw[Z] = GetMeasure(2);//a1...
-//		raw[Th] = GetMeasure(3);//a2
-//
-//		if (step % printOn == 0)
-//			printf("ads1115 raw: %d %d %d %d ", raw[X], raw[Y], raw[Z], raw[Th]);
-//
+
 		if (debugAxis && step % printOn == 0)
-			printf("r/z/m/M/n: ");	
+			printf("r/z/m/M/n: ");
+		
 		for (int a = 0; a < _num_axis; ++a)
 		{
 			int iter = GetMeasure(a);
@@ -516,25 +506,7 @@ int main(void)
 		
 		
 		// GPIO
-		
 
-//		if (debugGpio && step % printOn == 0)
-//		{			
-//			printf("buttons: ");
-//		}
-		
-
-		
-		for (int i = 0; i < 6; ++i)
-		{
-			//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 << i, GPIO_PIN_SET);
-		}
-		  /*Configure GPIO pin : PA6 */
-//		GPIO_InitTypeDef GPIO_InitStruct;
-//		GPIO_InitStruct.Pin = GPIO_PIN_3;
-//		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-//		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
@@ -572,7 +544,9 @@ int main(void)
 //			
 //		}
 		
-	
+			
+		// h0 h1 h2 h3 b1 b2 b3 b4 b5 
+		int16_t bit = 0;
 		struct joystick_report_t report = { 
 			(int16_t)norm[Th], 
 			(int16_t)norm[X], 
@@ -580,10 +554,6 @@ int main(void)
 			(int16_t)norm[Z], 
 			0
 		};
-		
-		// h0 h1 h2 h3 b1 b2 b3 b4 b5 
-		int16_t bit = 0;
-		
 		if (s6_h_u)
 		{
 			report.hat_and_buttons |= 0;
@@ -623,8 +593,8 @@ int main(void)
 
 		if ((debugAxis || debugGpio) && step % printOn == 0)
 			printf("\r\n");
-		}
-  /* USER CODE END 3 */
+	}
+/* USER CODE END 3 */
 
 }
 
@@ -740,24 +710,20 @@ static void MX_GPIO_Init(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-	  /*Configure GPIO pins : PA0 PA1 PA2 PA3 
-	                           PA4 PA5 */
+	  /*Configure GPIO pins : PA0 PA1 PA2 */
 	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	  /*Configure GPIO pin : PA6 */
-	GPIO_InitStruct.Pin = GPIO_PIN_3 
-	                        | GPIO_PIN_4 | GPIO_PIN_5;
+	  /*Configure GPIO pins : PA3 PA4 PA5 */
+	GPIO_InitStruct.Pin = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	  /*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5, GPIO_PIN_RESET);
 
 }
 
