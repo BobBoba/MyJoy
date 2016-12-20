@@ -50,8 +50,6 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc1;
-
 I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
@@ -59,6 +57,21 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 extern USBD_HandleTypeDef hUsbDeviceFS;
 USBD_CUSTOM_HID_ItfTypeDef  USBD_CustomHID_fops_FS;
+enum Buttons
+{
+	s1,// = 0x1,
+	s2,// = 0x2,
+	s3,// = 0x4,
+	s4,// = 0x8,
+	s5,// = 0x10,
+	s6,// = 0x20,
+	s7,// = 0x40,
+	s8,// = 0x80,
+	s9,// = 0x100,
+	_num_buttons
+};
+u_char buttons[_num_buttons];
+
 
 /* I2C SPEEDCLOCK define to max value: 400 KHz on STM32F1xx*/
 #define ADS1115_I2C_SPEEDCLOCK   400000
@@ -80,7 +93,6 @@ void Error_Handler(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
-static void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -112,6 +124,7 @@ struct joystick_report_t
 	int16_t throttle;
 	int16_t x;
 	int16_t y;
+	int16_t z;
 	uint8_t hat_and_buttons;
 	//uint8_t padding;
 };
@@ -291,7 +304,6 @@ int main(void)
 	MX_USART1_UART_Init();
 	MX_I2C1_Init();
 	MX_USB_DEVICE_Init();
-	MX_ADC1_Init();
 
 	  /* USER CODE BEGIN 2 */
 	
@@ -299,34 +311,34 @@ int main(void)
 	printf("-=[ Run! ]=-\r\n");
 	printf("size(joystick_report_t): %d bytes\r\n", sizeof(struct joystick_report_t));
 	
-	if (HAL_ADC_Start(&hadc1) != HAL_OK)
-	{
-		printf("HAL_ADC_Start: failed\r\n");
-	  /* Start Error */
-		Error_Handler();
-	}
-	
-		/* Run the ADC calibration */  
-	if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
-	{
-		printf("HAL_ADCEx_Calibration_Start: failed\r\n");
-	  /* Calibration Error */
-		Error_Handler();
-	}
-	
-	/* Start ADC conversion on regular group with transfer by DMA */
-	if (HAL_ADC_Start(&hadc1
-		//, (uint32_t *)aADCxConvertedValues, ADCCONVERTEDVALUES_BUFFER_SIZE
-		) != HAL_OK)
-	{
-		printf("HAL_ADC_Start: failed\r\n");
-	  /* Start Error */
-		Error_Handler();
-	}
-	
-	
-	uint32_t adc_initial_y = HAL_ADC_GetValue(&hadc1);
-	int32_t minY = 0, maxY = 0;
+//	if (HAL_ADC_Start(&hadc1) != HAL_OK)
+//	{
+//		printf("HAL_ADC_Start: failed\r\n");
+//	  /* Start Error */
+//		Error_Handler();
+//	}
+//	
+//		/* Run the ADC calibration */  
+//	if (HAL_ADCEx_Calibration_Start(&hadc1) != HAL_OK)
+//	{
+//		printf("HAL_ADCEx_Calibration_Start: failed\r\n");
+//	  /* Calibration Error */
+//		Error_Handler();
+//	}
+//	
+//	/* Start ADC conversion on regular group with transfer by DMA */
+//	if (HAL_ADC_Start(&hadc1
+//		//, (uint32_t *)aADCxConvertedValues, ADCCONVERTEDVALUES_BUFFER_SIZE
+//		) != HAL_OK)
+//	{
+//		printf("HAL_ADC_Start: failed\r\n");
+//	  /* Start Error */
+//		Error_Handler();
+//	}
+//	
+//	
+//	uint32_t adc_initial_y = HAL_ADC_GetValue(&hadc1);
+//	int32_t minY = 0, maxY = 0;
 	
 	if (HAL_I2C_IsDeviceReady(&hi2c1, ADS1115_REMOTE_ADR, 1000, 3000) != HAL_OK)
 	{
@@ -395,6 +407,12 @@ int main(void)
 //	int initialY =	GetMeasure(1);//a0
 //	int initialZ =	GetMeasure(2);//a1...
 //	int initialTh = GetMeasure(3);//a2
+	
+	//for(int i = 0; i < 6; ++i)
+	//	HAL_GPIO_WritePin(GPIOA, )
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
 
 		
   /* USER CODE END 2 */
@@ -402,7 +420,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	int step = -1;
-	int printOn = 50;
+	int printOn = 1;
+	u_char debugAxis = 0;
+	u_char debugGpio = 1; 
 	while (1)
 	{
 	  
@@ -435,7 +455,7 @@ int main(void)
 //		if (step % printOn == 0)
 //			printf("ads1115 raw: %d %d %d %d ", raw[X], raw[Y], raw[Z], raw[Th]);
 //
-		if (step % printOn == 0)
+		if (debugAxis && step % printOn == 0)
 			printf("r/z/m/M/n: ");	
 		for (int a = 0; a < _num_axis; ++a)
 		{
@@ -444,31 +464,31 @@ int main(void)
 			if (iter == -1)
 				printf("\r\nGetMeasure(%d) failed\r\n", a);
 			
-			if (step % printOn == 0)
+			if (debugAxis && step % printOn == 0)
 				printf("%6d", iter);
 			
 			if (a != Th)
 			{				
 			
 				iter -= initial[a];
-				if (step % printOn == 0)
+				if (debugAxis && step % printOn == 0)
 					printf("%6d", iter);
 			}
 			
 			if (iter < min[a])
 				min[a] = iter;
-			if (step % printOn == 0)
+			if (debugAxis && step % printOn == 0)
 				printf("%6d", min[a]);
 			
 			if (iter > max[a])
 				max[a] = iter;
-			if (step % printOn == 0)
+			if (debugAxis && step % printOn == 0)
 				printf("%6d", max[a]);
 			
 			if (a == Th)
 			{
 				iter -= min[a]; // bind to zero
-				iter -= (max[a] - min[a])/2; // switch to pos/neg legs
+				iter -= (max[a] - min[a]) / 2; // switch to pos/neg legs
 				
 				int M = (max[a] - min[a]) / 2;
 				int m = -(max[a] - min[a]) / 2;
@@ -484,33 +504,94 @@ int main(void)
 				else if (iter < 0)
 					iter = iter * 32768 / -min[a];
 			}
-			if (step % printOn == 0)
+			if (debugAxis && step % printOn == 0)
 				printf("%6d|", iter);
 			
 			norm[a] = iter;
 		}
-		//uint16_t x = val / 16;
-		//if (step % printOn == 0)
-		//	printf("norm: %d %d %d %d ", raw[X], raw[Y], raw[Z], raw[Th]);
+		if (debugAxis && step % printOn == 0)
+		{
+			printf("\r\n");
+		}
 		
-		struct joystick_report_t report = { (int16_t)norm[Th], (int16_t)norm[X], (int16_t)norm[Y], 0 };
+		
+		// GPIO
+		
+
+		if (debugGpio && step % printOn == 0)
+		{			
+			printf("buttons: ");
+		}
+		
+
+		
+		for (int i = 0; i < 6; ++i)
+		{
+			//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0 << i, GPIO_PIN_SET);
+		}
+		  /*Configure GPIO pin : PA6 */
+//		GPIO_InitTypeDef GPIO_InitStruct;
+//		GPIO_InitStruct.Pin = GPIO_PIN_3;
+//		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+//		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+//		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
+		//HAL_Delay(1);
+		buttons[s7] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		buttons[s8] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		buttons[s9] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		
+		
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
+		buttons[s2] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		buttons[s1] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		buttons[s6] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
+		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET); 
+		buttons[s5] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		buttons[s4] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		buttons[s3] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		
+		//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
+		
+//		if (debugGpio && step % printOn == 0)
+//			printf("1, 4: %d, %d", 
+//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1), 
+//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4));
+		
+		for (int i = 0; i < _num_buttons; ++i)
+		{
+			if (debugGpio && step % printOn == 0)
+				printf("[%d]:%d ", i, buttons[i]);
+			
+		}
+		
+		if (debugGpio && step % printOn == 0)
+			printf("\r\n");
+		
+		struct joystick_report_t report = { 
+			(int16_t)norm[Th], 
+			(int16_t)norm[X], 
+			(int16_t)norm[Y], 
+			(int16_t)norm[Z], 
+			0
+		};
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
-		//printf("[%d] step: %d %d %d %d\r\n", step, aADCxConvertedValues[0], aADCxConvertedValues[1], aADCxConvertedValues[2], aADCxConvertedValues[3]);
 		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
-		/*
-		printf("minY/maxY:%d/%d, adc_y: %.1f%%", 
-			minY,
-			maxY,
-			adc_y / 32768.0 * 100.0);
-		//*/
+
 	  
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
 
-		if (step % printOn == 0)
-			printf("\r\n");
 	}
   /* USER CODE END 3 */
 
@@ -553,8 +634,7 @@ void SystemClock_Config(void)
 		Error_Handler();
 	}
 
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC | RCC_PERIPHCLK_USB;
-	PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV4;
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
 	PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
 	{
@@ -573,38 +653,6 @@ void SystemClock_Config(void)
 	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* ADC1 init function */
-static void MX_ADC1_Init(void)
-{
-
-	ADC_ChannelConfTypeDef sConfig;
-
-	    /**Common config 
-	    */
-	hadc1.Instance = ADC1;
-	hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-	hadc1.Init.ContinuousConvMode = ENABLE;
-	hadc1.Init.DiscontinuousConvMode = DISABLE;
-	hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-	hadc1.Init.NbrOfConversion = 1;
-	if (HAL_ADC_Init(&hadc1) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-	    /**Configure Regular Channel 
-	    */
-	sConfig.Channel = ADC_CHANNEL_0;
-	sConfig.Rank = 1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-	{
-		Error_Handler();
-	}
-
-}
-
 /* I2C1 init function */
 static void MX_I2C1_Init(void)
 {
@@ -612,7 +660,7 @@ static void MX_I2C1_Init(void)
 	hi2c1.Instance = I2C1;
 	hi2c1.Init.ClockSpeed = 400000;
 	hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
-	hi2c1.Init.OwnAddress1 = 0;
+	hi2c1.Init.OwnAddress1 = 144;
 	hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
 	hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
 	hi2c1.Init.OwnAddress2 = 0;
@@ -654,10 +702,31 @@ static void MX_USART1_UART_Init(void)
 static void MX_GPIO_Init(void)
 {
 
-  /* GPIO Ports Clock Enable */
+	GPIO_InitTypeDef GPIO_InitStruct;
+
+	  /* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
+
+	  /*Configure GPIO pins : PA0 PA1 PA2 PA3 
+	                           PA4 PA5 */
+	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	  /*Configure GPIO pin : PA6 */
+	GPIO_InitStruct.Pin = GPIO_PIN_3 
+	                        | GPIO_PIN_4 | GPIO_PIN_5;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	  /*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
 }
 

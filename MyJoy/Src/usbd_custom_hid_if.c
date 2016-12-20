@@ -105,7 +105,8 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0xa1, 0x00,                    //   COLLECTION (Physical)
 	0x09, 0x30,                    //     USAGE (X)
 	0x09, 0x31,                    //     USAGE (Y)
-	0x95, 0x02,                    //     REPORT_COUNT (2)
+	0x09, 0x32,                    //     USAGE (Z)
+	0x95, 0x03,                    //     REPORT_COUNT (3)
 	0x81, 0x02,                    //     INPUT (Data,Var,Abs)
 	0xc0,                          //   END_COLLECTION
 	0x09, 0x39,                    //   USAGE (Hat switch)
@@ -127,6 +128,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DES
 	0x55, 0x00,                    //   UNIT_EXPONENT (0)
 	0x65, 0x00,                    //   UNIT (None)
 	0x81, 0x02,                    //   INPUT (Data,Var,Abs)
+
   /* USER CODE END 0 */ 
   0xC0    /*     END_COLLECTION	             */
    
