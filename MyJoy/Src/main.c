@@ -57,20 +57,20 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 extern USBD_HandleTypeDef hUsbDeviceFS;
 USBD_CUSTOM_HID_ItfTypeDef  USBD_CustomHID_fops_FS;
-enum Buttons
-{
-	s1,// = 0x1,
-	s2,// = 0x2,
-	s3,// = 0x4,
-	s4,// = 0x8,
-	s5,// = 0x10,
-	s6,// = 0x20,
-	s7,// = 0x40,
-	s8,// = 0x80,
-	s9,// = 0x100,
-	_num_buttons
-};
-u_char buttons[_num_buttons];
+//enum Buttons
+//{
+//	s1_fire,// = 0x1, //fire
+//	s2_05,// = 0x2, //
+//	s3_03,// = 0x4,   //
+//	s4_02,// = 0x8,
+//	s5_04,// = 0x10,
+//	s6_h_u,// = 0x20,
+//	s7_h_r,// = 0x40,
+//	s8_h_d,// = 0x80,
+//	s9_h_l,// = 0x100,
+//	_num_buttons
+//};
+//u_char buttons[_num_buttons];
 
 
 /* I2C SPEEDCLOCK define to max value: 400 KHz on STM32F1xx*/
@@ -125,7 +125,7 @@ struct joystick_report_t
 	int16_t x;
 	int16_t y;
 	int16_t z;
-	uint8_t hat_and_buttons;
+	uint16_t hat_and_buttons;
 	//uint8_t padding;
 };
 #pragma pack(pop)
@@ -422,14 +422,14 @@ int main(void)
 	int step = -1;
 	int printOn = 1;
 	u_char debugAxis = 0;
-	u_char debugGpio = 1; 
+	u_char debugGpio = 0; 
 	while (1)
 	{
 	  
 		//HAL_Delay(100);
 		++step;
 		
-		if (step % printOn == 0)
+		if ((debugAxis || debugGpio) && step % printOn == 0)
 			printf("[%4d] ", step / printOn);
 		//HAL_ADC_PollForConversion(&hadc1, 1000);
 //		int32_t adc_y = HAL_ADC_GetValue(&hadc1) - adc_initial_y;
@@ -518,10 +518,10 @@ int main(void)
 		// GPIO
 		
 
-		if (debugGpio && step % printOn == 0)
-		{			
-			printf("buttons: ");
-		}
+//		if (debugGpio && step % printOn == 0)
+//		{			
+//			printf("buttons: ");
+//		}
 		
 
 		
@@ -539,25 +539,24 @@ int main(void)
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
-		//HAL_Delay(1);
-		buttons[s7] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-		buttons[s8] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
-		buttons[s9] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		GPIO_PinState s7_h_r = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		GPIO_PinState s8_h_d = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		GPIO_PinState s9_h_l = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
 		
 		
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
-		buttons[s2] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-		buttons[s1] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
-		buttons[s6] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		GPIO_PinState s2_05 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		GPIO_PinState s1_fire = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		GPIO_PinState s6_h_u = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
 		
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET); 
-		buttons[s5] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-		buttons[s4] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
-		buttons[s3] = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+		GPIO_PinState s5_04 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+		GPIO_PinState s4_02 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+		GPIO_PinState s3_03 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
 		
 		//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 		
@@ -566,16 +565,14 @@ int main(void)
 //				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1), 
 //				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4));
 		
-		for (int i = 0; i < _num_buttons; ++i)
-		{
-			if (debugGpio && step % printOn == 0)
-				printf("[%d]:%d ", i, buttons[i]);
-			
-		}
+//		for (int i = 0; i < _num_buttons; ++i)
+//		{
+//			if (debugGpio && step % printOn == 0)
+//				printf("[%d]:%d ", i, buttons[i]);
+//			
+//		}
 		
-		if (debugGpio && step % printOn == 0)
-			printf("\r\n");
-		
+	
 		struct joystick_report_t report = { 
 			(int16_t)norm[Th], 
 			(int16_t)norm[X], 
@@ -583,6 +580,38 @@ int main(void)
 			(int16_t)norm[Z], 
 			0
 		};
+		
+		// h0 h1 h2 h3 b1 b2 b3 b4 b5 
+		int16_t bit = 0;
+		
+		if (s6_h_u)
+		{
+			report.hat_and_buttons |= 0;
+		}
+		else if (s9_h_l)
+		{
+			report.hat_and_buttons |= 1;
+		}
+		else if (s8_h_d)
+		{
+			report.hat_and_buttons |= 2;
+		}
+		else if (s7_h_r)
+		{
+			report.hat_and_buttons |= 3;
+		}
+		else
+		{
+			report.hat_and_buttons |= 4; // neutral
+			
+		}
+		bit += 4;
+		
+		report.hat_and_buttons |= s1_fire << bit++;
+		report.hat_and_buttons |= s2_05 << bit++;
+		report.hat_and_buttons |= s3_03 << bit++;
+		report.hat_and_buttons |= s4_02 << bit++;
+		report.hat_and_buttons |= s5_04 << bit++;
 		
 		//HAL_ADC_ConvCpltCallback(&hadc1);
 		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
@@ -592,7 +621,9 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 
-	}
+		if ((debugAxis || debugGpio) && step % printOn == 0)
+			printf("\r\n");
+		}
   /* USER CODE END 3 */
 
 }

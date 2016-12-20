@@ -83,7 +83,7 @@
 /*---------- -----------*/
 #define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE     8
 /*---------- -----------*/
-#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     81
+#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     87
 /****************************************/
 /* #define for FS and HS identification */
 #define DEVICE_FS 		0
