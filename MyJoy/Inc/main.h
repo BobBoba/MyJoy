@@ -111,8 +111,15 @@ extern int initial[_num_axis],
 /* Exported macro ------------------------------------------------------------*/
 #define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 
+/* Buffer used for transmission */
+extern uint8_t aTxBuffer[];// = " ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA**** ";
+
+/* Buffer used for reception */
+extern uint8_t aRxBuffer[];
+
 int GetMeasure(int channel);
 void init();
+void Error_Handler(void);
 
 /* USER CODE END Private defines */
 

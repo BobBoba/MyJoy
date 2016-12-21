@@ -35,6 +35,7 @@ unsigned int ads111x_read()
 
 }
 
+#if 0
 unsigned short ads111x_read_IT()
 {
 	int ret;
@@ -54,7 +55,7 @@ unsigned short ads111x_read_IT()
 	return Data2;
 
 }
-
+#endif
 HAL_StatusTypeDef ads111x_write_pointer(unsigned char RegisterAddress)
 {
 	unsigned char Address = RegisterAddress;
@@ -70,7 +71,7 @@ HAL_StatusTypeDef ads111x_write_pointer(unsigned char RegisterAddress)
 	  //while( TransmitComplete == 0);
 	return ret;
 }
-
+#if 0
 int ads111x_write_pointer_IT(unsigned char RegisterAddress)
 {
 	unsigned char Address = RegisterAddress;
@@ -88,7 +89,6 @@ int ads111x_write_pointer_IT(unsigned char RegisterAddress)
 	return ret;
 }
 
-#if 0
 // ne sert que pour les configurations, il faut 
 void ads111x_write(unsigned short Data)
 {
@@ -114,7 +114,7 @@ void ads111x_write(unsigned short Data)
 #endif
 
 // ne sert que pour les configurations, il faut 
-void ads111x_write_rr(unsigned short Data, unsigned char reg)
+HAL_StatusTypeDef ads111x_write_rr(unsigned short Data, unsigned char reg)
 {
 	int ret;
 	TransmitComplete = 0;
@@ -126,12 +126,13 @@ void ads111x_write_rr(unsigned short Data, unsigned char reg)
 	data[2] = Data & 0xFF;
    
 	ret = HAL_I2C_Master_Transmit(&hi2c1, ads111x_adr, (unsigned char*)&data, 3, 100);
-	if (ret != HAL_OK)
-		return ;
+	//if (ret != HAL_OK)
+	return ret;
 
 		  //while( TransmitComplete == 0);
 }
 
+#if 0
 // ne sert que pour les configurations, il faut 
 void ads111x_write_rr_IT(unsigned short Data, unsigned char reg)
 {
@@ -162,3 +163,4 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	TransmitComplete = 1;
 }
+#endif

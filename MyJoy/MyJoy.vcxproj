@@ -59,6 +59,7 @@
     <ClCompile>
       <AdditionalIncludeDirectories>inc;Drivers/STM32F1xx_HAL_Driver/Inc;Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;Drivers/CMSIS/Include;Drivers\CMSIS\Device\ST\STM32F1xx\Include;Middlewares/ST/STM32_USB_Device_Library/Class/CustomHID/Inc;Middlewares/ST/STM32_USB_Device_Library/Core/Inc;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;STM32F103xB;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DumpStackUsage>true</DumpStackUsage>
     </ClCompile>
     <Link>
       <AdditionalLinkerInputs>;%(Link.AdditionalLinkerInputs)</AdditionalLinkerInputs>

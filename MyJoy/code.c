@@ -44,16 +44,20 @@ int initial[_num_axis],
 	norm[_num_axis];
 
 int step = -1;
-int printOn = 1;
-u_char debugAxis = 0;
+int printOn = 20;
+u_char debugAxis = 1;
 u_char debugGpio = 0; 
 
 
 /* Buffer used for transmission */
-uint8_t aTxBuffer[] = " ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA**** ";
+uint8_t aTxBuffer[16];
 
 /* Buffer used for reception */
 uint8_t aRxBuffer[RXBUFFERSIZE];
+
+
+// USB report
+struct joystick_report_t report = {0};
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,7 +119,7 @@ int ConfigureAdsChannel(enum InputMultiplexer chanel, enum ProgrammableGain scal
 
 int SetChannel(enum InputMultiplexer channel)
 {
-	return 0;
+	//return 0;
 	if (HAL_OK != ads111x_write_pointer(1))
 	{
 		printf("ads111x_write_pointer(1) failed\r\n");
@@ -133,8 +137,52 @@ int SetChannel(enum InputMultiplexer channel)
 	return ads111x_read();
 
 }
-// -1 on error
+
 int GetMeasure(int channel)
+{
+	ads111x_write_pointer(1);
+	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
+	SetInputMultiplexer(UNIPOLAR_AIN1_E + channel);
+
+	HAL_Delay(8);
+
+	//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E){}
+  
+	ads111x_write_pointer(0);
+	return ads111x_read();
+}
+
+
+int GetMeasure_2(int channel)
+{
+	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
+	{
+		printf("ads111x_write_pointer(1) failed\r\n");
+		return -1;
+	}
+	
+	SetInputMultiplexer(UNIPOLAR_AIN1_E + channel);
+	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
+	
+	
+//	while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
+//	{
+//		printf("CURRENTLY_PERFORMING_CONVERSION_E...\r\n");
+//	}
+	
+	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONVERT))
+	{
+		printf("ads111x_write_pointer(1) failed, restarting i2c\r\n");
+		
+		//HAL_I2C_DeInit(&hi2c1);
+		//HAL_I2C_Init(&hi2c1);
+		return -1;
+	}
+	
+	return ads111x_read();
+}
+// -1 on error
+int GetMeasure_(int channel)
 {
 	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
 	{
@@ -156,11 +204,11 @@ int GetMeasure(int channel)
 	        ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
 	        ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
 	        ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
-	        ADS1015_REG_CONFIG_DR_1600SPS   | // 1600 samples per second (default)
+	        ADS1015_REG_CONFIG_DR_3300SPS   | // 1600 samples per second (default)
 	        ADS1015_REG_CONFIG_MODE_SINGLE;   // Single-shot mode (default)
 
 	                    // Set PGA/voltage range
-	config |= GAIN_ONE;	
+	config |= ADS1015_REG_CONFIG_PGA_4_096V;	
 
 	//OldValue = ads111x_read();
 
@@ -185,28 +233,16 @@ int GetMeasure(int channel)
 		break;
 	}
 	
-	//
-//	switch (CONTINUOUS_CONVERSION_MODE_E)
-//	{
-//	case POWER_DOWN_SINGLE_SHOT_MODE_E: 
-//		Value = OldValue | MODE_MASK; 
-//		break;
-//	case CONTINUOUS_CONVERSION_MODE_E: 
-//		Value = OldValue & ~MODE_MASK;
-//		break;
-//	}
 	config |= ADS1015_REG_CONFIG_OS_SINGLE;
   
 
 	ads111x_write_rr(config, 1);
 	
 	
-	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
+	//HAL_Delay(8);
 
-	HAL_Delay(8);
-
-		//while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
-		//	;   
+	while (GetConversionStatus() == CURRENTLY_PERFORMING_CONVERSION_E)
+		;   
   
 	ads111x_write_pointer(ADS1015_REG_POINTER_CONVERT);
 	return ads111x_read();
@@ -246,7 +282,7 @@ void init()
 //	uint32_t adc_initial_y = HAL_ADC_GetValue(&hadc1);
 //	int32_t minY = 0, maxY = 0;
 	
-	if (HAL_I2C_IsDeviceReady(&hi2c1, ADS1115_REMOTE_ADR, 1000, 3000) != HAL_OK)
+	if (HAL_I2C_IsDeviceReady(&hi2c1, ADS1115_REMOTE_ADR, 10, 100) != HAL_OK)
 	{
 		printf("HAL_I2C_IsDeviceReady: false\r\n");
 		/* Start Error */
@@ -271,18 +307,79 @@ void init()
 //	ConfigureAdsForY();
 //	ConfigureAdsForZ();
 //	ConfigureAdsForTh();
-	while (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
+//	while (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
+//	{
+//		printf("ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG) failed, retry...\r\n");
+//		HAL_Delay(1000);
+//	}
+	
+	HAL_Delay(10);
+	if (HAL_OK != ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG))
 	{
-		printf("ads111x_write_pointer(ADS1015_REG_POINTER_CONFIG) failed\r\n");
-		HAL_Delay(1000);
+		printf("channel %d: ads111x_write_pointer(1) failed\r\n", 0);
+		//continue;
 	}
+		
+	//SetInputMultiplexer(UNIPOLAR_AIN1_E + channel);
+	SetProgrammableGain(FULL_SCALE_4096_MV_E);
+	SetDataRate(DATA_RATE_860_SPS_E);
+	SetMode(CONTINUOUS_CONVERSION_MODE_E);
+	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
+	SetComparatorQueue(DISABLE_COMPARATOR_E);
+	SetComparatorPolarity(ACTIVE_LOW_E);
 
-	for (int a = 0; a < _num_axis; ++a)
+#if 0
+	for (int channel = 0; channel < _num_axis; ++channel)
 	{
-		int r = GetMeasure(a);
-		if (r == -1)
-			printf("GetMeasure(%d) failed\r\n", a);
+
+
+		
+		continue;
+
+	// Start with default values
+		uint16_t config = ADS1015_REG_CONFIG_CQUE_NONE    | // Disable the comparator (default val)
+		                  ADS1015_REG_CONFIG_CLAT_NONLAT  | // Non-latching (default val)
+		                  ADS1015_REG_CONFIG_CPOL_ACTVLOW | // Alert/Rdy active low   (default val)
+		                  ADS1015_REG_CONFIG_CMODE_TRAD   | // Traditional comparator (default val)
+		                  ADS1015_REG_CONFIG_DR_3300SPS   | 
+		                  ADS1015_REG_CONFIG_MODE_SINGLE;  
+
+		                 
+		// Set PGA/voltage range
+		config |= ADS1015_REG_CONFIG_PGA_4_096V;
+
+			  // Set single-ended input channel
+		switch (channel)
+		{
+		case (0):
+			config |= ADS1015_REG_CONFIG_MUX_SINGLE_0;
+			break;
+		case (1):
+			config |= ADS1015_REG_CONFIG_MUX_SINGLE_1;
+			break;
+		case (2):
+			config |= ADS1015_REG_CONFIG_MUX_SINGLE_2;
+			break;
+		case (3):
+			config |= ADS1015_REG_CONFIG_MUX_SINGLE_3;
+			break;
+		}
+
+			  // Set 'start single-conversion' bit
+		//config |= ADS1015_REG_CONFIG_OS_SINGLE;
+
+			  // Write config register to the ADC
+		if (HAL_OK != ads111x_write_rr(config, ADS1015_REG_POINTER_CONFIG))
+		{
+			printf("channel %d: ads111x_write_rr(config, 1) failed\r\n", channel);
+			continue;
+		}
+		//writeRegister(m_i2cAddress, ADS1015_REG_POINTER_CONFIG, config);
+			//int r = GetMeasure(a);
+			//if (r == -1)
+			//	printf("GetMeasure(%d) failed\r\n", a);
 	}
+#endif
 	//SetProgrammableGain(FULL_SCALE_4096_MV_E);
 	//SetDataRate(DATA_RATE_64_SPS_E);
 	//SetMode(CONTINUOUS_CONVERSION_MODE_E);
@@ -290,6 +387,9 @@ void init()
 	//{		
 		//SetInputMultiplexer(UNIPOLAR_AIN1_E + i);
 	//}
+	
+	HAL_Delay(10);
+
 	
 	for (int i = 0; i < MIDDLE_POINT_ITERATIONS; ++i)
 	{		
@@ -301,7 +401,7 @@ void init()
 			printf("%6d ", initial_array[i][a]);	
 		}
 		printf("\r\n");
-		//HAL_Delay(100);
+		HAL_Delay(50);
 	}
 	
 	printf("initial axis values for x/y/z/th: ");
@@ -447,13 +547,7 @@ void RHIDCheckState()
 			
 	// h0 h1 h2 h3 b1 b2 b3 b4 b5 
 	int16_t bit = 0;
-	struct joystick_report_t report = { 
-		(int16_t)norm[Th], 
-		(int16_t)norm[X], 
-		(int16_t)norm[Y], 
-		(int16_t)norm[Z], 
-		0
-	};
+
 	if (s6_h_u)
 	{
 		report.hat_and_buttons |= 0;
@@ -477,6 +571,7 @@ void RHIDCheckState()
 	}
 	bit += 4;
 		
+	report.hat_and_buttons = 0;
 	report.hat_and_buttons |= s1_fire << bit++;
 	report.hat_and_buttons |= s2_05 << bit++;
 	report.hat_and_buttons |= s3_03 << bit++;
@@ -484,6 +579,11 @@ void RHIDCheckState()
 	report.hat_and_buttons |= s5_04 << bit++;
 	
 
+	
+	report.throttle = (int16_t)norm[Th];
+	report.x = (int16_t)norm[X]; 
+	report.y = (int16_t)norm[Y]; 
+	report.z = (int16_t)norm[Z];
 		
 	//HAL_ADC_ConvCpltCallback(&hadc1);
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));

@@ -15,8 +15,8 @@ unsigned int ads111x_read();
 unsigned short ads111x_read_IT();
 
 HAL_StatusTypeDef ads111x_write_pointer(  unsigned char RegisterAddress);
-void ads111x_write_rr(unsigned short Data, unsigned char RegisterAddress);
-void ads111x_write(unsigned short data);
+HAL_StatusTypeDef ads111x_write_rr(unsigned short Data, unsigned char RegisterAddress);
+HAL_StatusTypeDef ads111x_write(unsigned short data);
 
 
 #define ads111x_write(data) ads111x_write_rr(data,1)

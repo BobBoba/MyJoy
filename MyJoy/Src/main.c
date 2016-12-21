@@ -60,12 +60,6 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 USBD_CUSTOM_HID_ItfTypeDef  USBD_CustomHID_fops_FS;
 
 
-/* Buffer used for transmission */
-extern uint8_t* aTxBuffer;// = " ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA****  ****I2C_TwoBoards communication based on DMA**** ";
-
-/* Buffer used for reception */
-extern uint8_t* aRxBuffer;
-
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE END PV */
 

@@ -203,7 +203,7 @@ void DMA1_Channel7_IRQHandler(void)
   /* USER CODE END DMA1_Channel7_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_i2c1_rx);
   /* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
-
+	//printf("DMA1_Channel7_IRQHandler: %s\r\n", aRxBuffer);
   /* USER CODE END DMA1_Channel7_IRQn 1 */
 }
 
