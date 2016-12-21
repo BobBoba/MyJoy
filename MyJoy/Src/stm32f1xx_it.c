@@ -36,7 +36,14 @@
 #include "stm32f1xx_it.h"
 
 /* USER CODE BEGIN 0 */
+#include "usb_device.h"
+#include "usbd_customhid.h"
+extern USBD_HandleTypeDef hUsbDeviceFS;
 
+int counter = 0;
+int v = 0;
+int32_t radius = 32767;
+double angle = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -173,7 +180,7 @@ void SysTick_Handler(void)
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -185,6 +192,34 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+* @brief This function handles DMA1 channel7 global interrupt.
+*/
+void DMA1_Channel7_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel7_IRQn 0 */
+  
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel7_IRQn 1 */
+}
+
+/**
+* @brief This function handles USB high priority or CAN TX interrupts.
+*/
+void USB_HP_CAN1_TX_IRQHandler(void)
+{
+  /* USER CODE BEGIN USB_HP_CAN1_TX_IRQn 0 */
+
+  /* USER CODE END USB_HP_CAN1_TX_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_FS);
+  /* USER CODE BEGIN USB_HP_CAN1_TX_IRQn 1 */
+	//printf("USB_HP_CAN1_TX_IRQHandler\r\n;")
+  /* USER CODE END USB_HP_CAN1_TX_IRQn 1 */
+}
+
+/**
 * @brief This function handles USB low priority or CAN RX0 interrupts.
 */
 void USB_LP_CAN1_RX0_IRQHandler(void)
@@ -193,8 +228,32 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_FS);
+	//printf("USB_LP_CAN1_RX0_IRQHandler\r\n;")
   /* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 1 */
+	//if (counter++ == USBD_HID_GetPollingInterval(&USBD_Device))
+	//{
+		//GetPointerData(HID_Buffer);
+      
 
+//	struct joystick_report_t report = { 
+//		0, 
+//		0, 
+//		0, 
+//		0, 
+//		0
+//	};
+//	float x = cos((double)angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//	angle += 0.01; 
+//	report.x = x;
+//	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
+	
+	/* send data though IN endpoint*/
+	//if ((HID_Buffer[1] != 0) || (HID_Buffer[2] != 0))
+	//{
+	//USBD_HID_SendReport(&hUsbDeviceFS, report, 4);
+	//}
+	//counter = 0;
+//}
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 1 */
 }
 

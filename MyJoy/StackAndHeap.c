@@ -2,11 +2,13 @@
 #include <sys/types.h>
 
 #ifndef FIXED_STACK_SIZE
-#error Please define FIXED_STACK_SIZE via VisualGDB Project Properties
+#warning Please define FIXED_STACK_SIZE via VisualGDB Project Properties
+#define FIXED_STACK_SIZE 4096
 #endif
 
 #ifndef FIXED_HEAP_SIZE
-#error Please define FIXED_HEAP_SIZE via VisualGDB Project Properties
+#warning Please define FIXED_HEAP_SIZE via VisualGDB Project Properties
+#define FIXED_HEAP_SIZE 8192
 #endif
 
 /*

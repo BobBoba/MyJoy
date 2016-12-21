@@ -54,6 +54,8 @@ I2C_HandleTypeDef hi2c1;
 
 UART_HandleTypeDef huart1;
 
+__IO uint8_t PrevXferComplete = 1;
+
 /* USER CODE BEGIN PV */
 extern USBD_HandleTypeDef hUsbDeviceFS;
 USBD_CUSTOM_HID_ItfTypeDef  USBD_CustomHID_fops_FS;
@@ -117,18 +119,7 @@ PUTCHAR_PROTOTYPE
 
 	return ch;
 }
-#pragma pack(push, 1)
-struct joystick_report_t
-{
-	//uint8_t reportId;
-	int16_t throttle;
-	int16_t x;
-	int16_t y;
-	int16_t z;
-	uint16_t hat_and_buttons;
-	//uint8_t padding;
-};
-#pragma pack(pop)
+
 
 enum JoystickAxis
 {
@@ -423,16 +414,42 @@ int main(void)
 	int printOn = 1;
 	u_char debugAxis = 0;
 	u_char debugGpio = 0; 
+
 	
+//	struct joystick_report_t report = { 
+//		0, 
+//		0, 
+//		0, 
+//		0, 
+//		0
+//	};
 //	int v = 0;
-//	int32_t radius = 32767;
+//	double radius = 32767;
 //	double angle = 0;
 //	while (1)
 //	{
-//		float x = cos((double)angle * 3.14 / 180.0)*radius;  // value -127 .. 128
-//		angle += 0.01; 
+//		//HAL_Delay(10);
+//		double x = cos(angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//		double y = sin(angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//		double z = cos(angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//		double t = cos(angle * 3.14 / 180.0)*radius;  // value -127 .. 128
+//		angle += 0.1; 
 //		report.x = x;
+//		report.y = y;
+//		report.z = z;
+//		report.throttle = t;
 //		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
+//	}
+	
+//	while (1)
+//	{	
+//		if (bDeviceState == CONFIGURED)
+//		{
+//			if (PrevXferComplete)
+//			{
+//				RHIDCheckState();
+//			}
+//		}
 //	}
 	
 	while (1)
@@ -594,7 +611,7 @@ int main(void)
 		if ((debugAxis || debugGpio) && step % printOn == 0)
 			printf("\r\n");
 	}
-/* USER CODE END 3 */
+  /* USER CODE END 3 */
 
 }
 
