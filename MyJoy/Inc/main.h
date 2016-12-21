@@ -81,6 +81,17 @@ struct joystick_report_t
 };
 #pragma pack(pop)
 
+enum JoystickAxis
+{
+	X,
+	Y,
+	Z,
+	Th,
+	_num_axis
+};
+
+#define MIDDLE_POINT_ITERATIONS 10
+
 /* USER CODE END Private defines */
 
 /**

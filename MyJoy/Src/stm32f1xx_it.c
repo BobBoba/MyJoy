@@ -39,6 +39,7 @@
 #include "usb_device.h"
 #include "usbd_customhid.h"
 extern USBD_HandleTypeDef hUsbDeviceFS;
+extern __IO uint8_t PrevXferComplete;
 
 int counter = 0;
 int v = 0;
@@ -206,20 +207,6 @@ void DMA1_Channel7_IRQHandler(void)
 }
 
 /**
-* @brief This function handles USB high priority or CAN TX interrupts.
-*/
-void USB_HP_CAN1_TX_IRQHandler(void)
-{
-  /* USER CODE BEGIN USB_HP_CAN1_TX_IRQn 0 */
-
-  /* USER CODE END USB_HP_CAN1_TX_IRQn 0 */
-  HAL_PCD_IRQHandler(&hpcd_USB_FS);
-  /* USER CODE BEGIN USB_HP_CAN1_TX_IRQn 1 */
-	//printf("USB_HP_CAN1_TX_IRQHandler\r\n;")
-  /* USER CODE END USB_HP_CAN1_TX_IRQn 1 */
-}
-
-/**
 * @brief This function handles USB low priority or CAN RX0 interrupts.
 */
 void USB_LP_CAN1_RX0_IRQHandler(void)
@@ -228,8 +215,9 @@ void USB_LP_CAN1_RX0_IRQHandler(void)
 
   /* USER CODE END USB_LP_CAN1_RX0_IRQn 0 */
   HAL_PCD_IRQHandler(&hpcd_USB_FS);
-	//printf("USB_LP_CAN1_RX0_IRQHandler\r\n;")
   /* USER CODE BEGIN USB_LP_CAN1_RX0_IRQn 1 */
+	  //printf("USB_LP_CAN1_RX0_IRQHandler\r\n;");
+	PrevXferComplete = 1;
 	//if (counter++ == USBD_HID_GetPollingInterval(&USBD_Device))
 	//{
 		//GetPointerData(HID_Buffer);
