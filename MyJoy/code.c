@@ -46,7 +46,7 @@ int initial[_num_axis],
 const u_char INVERT_X = 1;
 const u_char INVERT_Y = 0;
 const u_char INVERT_Z = 0;
-const u_char INVERT_Th = 1;
+const u_char INVERT_Th = 0;
 
 int step = -1;
 int printOn = 20;
