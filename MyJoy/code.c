@@ -43,7 +43,7 @@ int initial[_num_axis],
 	max[_num_axis], 
 	norm[_num_axis];
 
-const u_char INVERT_X = 0;
+const u_char INVERT_X = 1;
 const u_char INVERT_Y = 0;
 const u_char INVERT_Z = 0;
 const u_char INVERT_Th = 1;
@@ -505,6 +505,11 @@ void RHIDCheckState()
 		// regular axis
 		if (a != Th)
 		{		
+			if (iter > 0)
+				iter = iter * 32767 / max[a];
+			else if (iter < 0)
+				iter = iter * 32768 / -min[a];
+			
 			if (INVERT_X && a == X)
 				iter = -iter;
 			
@@ -518,16 +523,10 @@ void RHIDCheckState()
 			//if (debugAxis && step % printOn == 0)
 			//	printf("%6d", iter);			
 			
-			if (iter > 0)
-				iter = iter * 32767 / max[a];
-			else if (iter < 0)
-				iter = iter * 32768 / -min[a];
 		}
 		// throttle axis without vertical aligning spring
 		else 
 		{
-			if (INVERT_Th && a == Th)
-				iter = -iter;
 				
 			int M = (max[a] - min[a]) / 2;
 			int m = -(max[a] - min[a]) / 2;
@@ -535,7 +534,15 @@ void RHIDCheckState()
 				iter = iter * 32767 / M;
 			else if (iter < 0)
 				iter = -iter * 32768 / m;
+			
+			if (INVERT_Th && a == Th)
+				iter = -iter;
 		}
+		
+		if (iter > 32767)
+			iter = 32767;
+		if (iter < -32768)
+			iter = -32768;
 		
 		// normalized
 		if (debugAxis && step % printOn == 0)
