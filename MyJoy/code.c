@@ -43,15 +43,15 @@ int initial[_num_axis],
 	max[_num_axis], 
 	norm[_num_axis];
 
-const u_char INVERT_X = 1;
-const u_char INVERT_Y = 1;
+const u_char INVERT_X = 0;
+const u_char INVERT_Y = 0;
 const u_char INVERT_Z = 0;
 const u_char INVERT_Th = 1;
 
 int step = -1;
 int printOn = 20;
-u_char debugAxis = 0;
-u_char debugGpio = 1; 
+u_char debugAxis = 1;
+u_char debugGpio = 0; 
 
 
 /* Buffer used for transmission */
@@ -418,6 +418,7 @@ void init()
 			initial[a] += initial_array[i][a];
 		}
 		initial[a] /= MIDDLE_POINT_ITERATIONS;
+		//min[a] = max[a] = norm[a] = initial[a];
 		printf("%6d ", initial[a]);
 	}
 	printf(" AVERAGE \r\n");
@@ -449,31 +450,61 @@ void RHIDCheckState()
 	
 	++step;
 
-	if ((debugAxis || debugGpio) && step % printOn == 0)
-		printf("[%4d] ", step / printOn);
+	//if ((debugAxis || debugGpio) && step % printOn == 0)
+	//	printf("[%4d] ", step / printOn);
 
 	if (debugAxis && step % printOn == 0)
-		printf("r/z/m/M/n: ");
+		printf("v/m/M/n: ");
 		
 	for (int a = 0; a < _num_axis; ++a)
 	{
-		int iter = GetMeasure(a);
-			
-		if (iter == -1)
-			printf("\r\nGetMeasure(%d) failed\r\n", a);
-		
 		if (debugAxis && step % printOn == 0 && a > 0)
 			printf(" | ");
-
-		//current raw value			
-		if (debugAxis && step % printOn == 0)
-			printf("%5d", iter);
+		
+		int iter = GetMeasure(a);
 			
+		if (iter < 0)
+		{
+			printf("\r\nGetMeasure(%d) failed\r\n", a);
+			continue;
+		}		
+		
+		// regular axis
 		if (a != Th)
 		{		
 			// bind to zero axis
 			iter -= initial[a];
-			
+		}
+		
+		// calculate min
+		if (iter < min[a])
+			min[a] = iter;
+		
+		// calculate max
+		if (iter > max[a])
+			max[a] = iter;	
+		
+		// throttle
+		if (a == Th)
+		{
+			iter -= (max[a] + min[a]) / 2;
+		}
+
+		// 1. display current value			
+		if (debugAxis && step % printOn == 0)
+			printf("%5d", iter);			
+		
+		// 2. display min value
+		if (debugAxis && step % printOn == 0)
+			printf("%6d", min[a]);			
+		
+		// 3. display max value
+		if (debugAxis && step % printOn == 0)
+			printf("%6d", max[a]);		
+		
+		// regular axis
+		if (a != Th)
+		{		
 			if (INVERT_X && a == X)
 				iter = -iter;
 			
@@ -482,34 +513,21 @@ void RHIDCheckState()
 			
 			if (INVERT_Z && a == R)
 				iter = -iter;
+
+			// 4. relative to zero point
+			//if (debugAxis && step % printOn == 0)
+			//	printf("%6d", iter);			
 			
-			// relative to zero point
-			if (debugAxis && step % printOn == 0)
-				printf("%6d", iter);
+			if (iter > 0)
+				iter = iter * 32767 / max[a];
+			else if (iter < 0)
+				iter = iter * 32768 / -min[a];
 		}
-			
-		if (iter < min[a])
-			min[a] = iter;
-		
-		// show min
-		if (debugAxis && step % printOn == 0)
-			printf("%6d", min[a]);
-			
-		if (iter > max[a])
-			max[a] = iter;
-		
-		//show max
-		if (debugAxis && step % printOn == 0)
-			printf("%6d", max[a]);
-			
-		if (a == Th)
+		// throttle axis without vertical aligning spring
+		else 
 		{
-			iter -= (max[a] + min[a]) / 2; // bind to zero
-#ifdef INVERT_Th
-			if (a == Th)
+			if (INVERT_Th && a == Th)
 				iter = -iter;
-#endif // INVERT_Th			
-			//iter -= (max[a] - min[a]) / 2; // switch to pos/neg legs
 				
 			int M = (max[a] - min[a]) / 2;
 			int m = -(max[a] - min[a]) / 2;
@@ -518,22 +536,17 @@ void RHIDCheckState()
 			else if (iter < 0)
 				iter = -iter * 32768 / m;
 		}
-		else 
-		{
-			if (iter > 0)
-				iter = iter * 32767 / max[a];
-			else if (iter < 0)
-				iter = iter * 32768 / -min[a];
-		}
+		
+		// normalized
 		if (debugAxis && step % printOn == 0)
 			printf("%6d", iter);
 					
 		norm[a] = iter;
 	}
-	if (debugAxis && step % printOn == 0)
-	{
-		printf("\r\n");
-	}
+//	if (debugAxis && step % printOn == 0)
+//	{
+//		printf("\r\n");
+//	}
 		
 		
 	// GPIO
@@ -567,8 +580,15 @@ void RHIDCheckState()
 	//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4));		
 	if (debugGpio && step % printOn == 0)
 		printf("hat %d,%d,%d,%d buttons: %d,%d,%d,%d,%d", 
-			s6_h_u, s9_h_l, s8_h_d, s7_h_r,
-			s1_fire, s2_05, s3_03, s4_02, s5_04);
+			s6_h_u,
+			s9_h_l,
+			s8_h_d,
+			s7_h_r,
+			s1_fire,
+			s2_05,
+			s3_03,
+			s4_02,
+			s5_04);
 		
 			
 	// h0 h1 h2 h3 b1 b2 b3 b4 b5 
