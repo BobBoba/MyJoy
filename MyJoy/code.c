@@ -43,6 +43,11 @@ int initial[_num_axis],
 	max[_num_axis], 
 	norm[_num_axis];
 
+#define INVERT_X
+#define INVERT_Y
+//#define INVERT_Z
+#define INVERT_Th
+
 int step = -1;
 int printOn = 20;
 u_char debugAxis = 1;
@@ -401,7 +406,7 @@ void init()
 			printf("%6d ", initial_array[i][a]);	
 		}
 		printf("\r\n");
-		HAL_Delay(50);
+		HAL_Delay(10);
 	}
 	
 	printf("initial axis values for x/y/z/th: ");
@@ -458,12 +463,27 @@ void RHIDCheckState()
 			printf("\r\nGetMeasure(%d) failed\r\n", a);
 			
 		if (debugAxis && step % printOn == 0)
-			printf("%6d", iter);
+			printf("%5d", iter);
 			
 		if (a != Th)
-		{				
-			
+		{		
 			iter -= initial[a];
+			
+#ifdef INVERT_X
+			if (a == X)
+				iter = -iter;
+#endif // INVERT_X
+			
+#ifdef INVERT_Y
+			if (a == Y)
+				iter = -iter;
+#endif // INVERT_Y
+			
+#ifdef INVERT_Z
+			if (a == Z)
+				iter = -iter;
+#endif // INVERT_Z
+			
 			if (debugAxis && step % printOn == 0)
 				printf("%6d", iter);
 		}
@@ -481,6 +501,10 @@ void RHIDCheckState()
 		if (a == Th)
 		{
 			iter -= min[a]; // bind to zero
+#ifdef INVERT_Th
+			if (a == Th)
+				iter = -iter;
+#endif // INVERT_Th			
 			iter -= (max[a] - min[a]) / 2; // switch to pos/neg legs
 				
 			int M = (max[a] - min[a]) / 2;
@@ -498,7 +522,7 @@ void RHIDCheckState()
 				iter = iter * 32768 / -min[a];
 		}
 		if (debugAxis && step % printOn == 0)
-			printf("%6d|", iter);
+			printf("%6d||", iter);
 			
 		norm[a] = iter;
 	}
