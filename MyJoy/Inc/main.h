@@ -61,6 +61,7 @@
 /* Private define ------------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
+
 #define ACTIVE_UART 1
 #define STDIN_USART ACTIVE_UART
 #define STDOUT_USART ACTIVE_UART
@@ -90,7 +91,28 @@ enum JoystickAxis
 	_num_axis
 };
 
+extern __IO uint8_t PrevXferComplete;
+
 #define MIDDLE_POINT_ITERATIONS 10
+
+extern int initial[_num_axis], 
+	initial_array[MIDDLE_POINT_ITERATIONS][_num_axis], 
+	min[_num_axis], 
+	max[_num_axis], 
+	norm[_num_axis];
+
+
+// I2C
+/* Size of Transmission buffer */
+#define TXBUFFERSIZE                      (COUNTOF(aTxBuffer) - 1)
+/* Size of Reception buffer */
+#define RXBUFFERSIZE                      TXBUFFERSIZE
+
+/* Exported macro ------------------------------------------------------------*/
+#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
+
+int GetMeasure(int channel);
+void init();
 
 /* USER CODE END Private defines */
 

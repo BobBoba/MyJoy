@@ -75,6 +75,7 @@
     <ClCompile Include="Ads1115.c" />
     <ClCompile Include="ads111x_access.c" />
     <ClCompile Include="C:\Users\Administrator\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F1xxxx\StartupFiles\startup_stm32f103xb.c" />
+    <ClCompile Include="code.c" />
     <ClCompile Include="Drivers\CMSIS\Device\ST\STM32F1xx\Source\Templates\system_stm32f1xx.c" />
     <ClCompile Include="Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c" />
     <ClCompile Include="Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c" />
