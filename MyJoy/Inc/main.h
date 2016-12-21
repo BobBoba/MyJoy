@@ -86,7 +86,7 @@ enum JoystickAxis
 {
 	X,
 	Y,
-	Z,
+	R,
 	Th,
 	_num_axis
 };

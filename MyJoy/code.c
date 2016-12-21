@@ -43,15 +43,15 @@ int initial[_num_axis],
 	max[_num_axis], 
 	norm[_num_axis];
 
-#define INVERT_X
-#define INVERT_Y
-//#define INVERT_Z
-#define INVERT_Th
+const u_char INVERT_X = 1;
+const u_char INVERT_Y = 1;
+const u_char INVERT_Z = 0;
+const u_char INVERT_Th = 1;
 
 int step = -1;
 int printOn = 20;
-u_char debugAxis = 1;
-u_char debugGpio = 0; 
+u_char debugAxis = 0;
+u_char debugGpio = 1; 
 
 
 /* Buffer used for transmission */
@@ -62,7 +62,7 @@ uint8_t aRxBuffer[RXBUFFERSIZE];
 
 
 // USB report
-struct joystick_report_t report = {0};
+struct joystick_report_t report = { 0 };
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -398,7 +398,7 @@ void init()
 	
 	for (int i = 0; i < MIDDLE_POINT_ITERATIONS; ++i)
 	{		
-		printf("initial x/y/z/th: ");
+		printf("X/Y/R/Th: ");
 		for (int a = 0; a < _num_axis; ++a)
 		{
 			initial_array[i][a] = GetMeasure(a);
@@ -409,7 +409,7 @@ void init()
 		HAL_Delay(10);
 	}
 	
-	printf("initial axis values for x/y/z/th: ");
+	printf("X/Y/R/Th: ");
 	for (int a = 0; a < _num_axis; ++a)
 	{
 		initial[a] = min[a] = max[a] = norm[a] = 0;
@@ -420,7 +420,7 @@ void init()
 		initial[a] /= MIDDLE_POINT_ITERATIONS;
 		printf("%6d ", initial[a]);
 	}
-	printf("\r\n");
+	printf(" AVERAGE \r\n");
 	
 	// throttle does not started from center
 	min[Th] = max[Th] = initial[Th];
@@ -461,51 +461,55 @@ void RHIDCheckState()
 			
 		if (iter == -1)
 			printf("\r\nGetMeasure(%d) failed\r\n", a);
-			
+		
+		if (debugAxis && step % printOn == 0 && a > 0)
+			printf(" | ");
+
+		//current raw value			
 		if (debugAxis && step % printOn == 0)
 			printf("%5d", iter);
 			
 		if (a != Th)
 		{		
+			// bind to zero axis
 			iter -= initial[a];
 			
-#ifdef INVERT_X
-			if (a == X)
+			if (INVERT_X && a == X)
 				iter = -iter;
-#endif // INVERT_X
 			
-#ifdef INVERT_Y
-			if (a == Y)
+			if (INVERT_Y && a == Y)
 				iter = -iter;
-#endif // INVERT_Y
 			
-#ifdef INVERT_Z
-			if (a == Z)
+			if (INVERT_Z && a == R)
 				iter = -iter;
-#endif // INVERT_Z
 			
+			// relative to zero point
 			if (debugAxis && step % printOn == 0)
 				printf("%6d", iter);
 		}
 			
 		if (iter < min[a])
 			min[a] = iter;
+		
+		// show min
 		if (debugAxis && step % printOn == 0)
 			printf("%6d", min[a]);
 			
 		if (iter > max[a])
 			max[a] = iter;
+		
+		//show max
 		if (debugAxis && step % printOn == 0)
 			printf("%6d", max[a]);
 			
 		if (a == Th)
 		{
-			iter -= min[a]; // bind to zero
+			iter -= (max[a] + min[a]) / 2; // bind to zero
 #ifdef INVERT_Th
 			if (a == Th)
 				iter = -iter;
 #endif // INVERT_Th			
-			iter -= (max[a] - min[a]) / 2; // switch to pos/neg legs
+			//iter -= (max[a] - min[a]) / 2; // switch to pos/neg legs
 				
 			int M = (max[a] - min[a]) / 2;
 			int m = -(max[a] - min[a]) / 2;
@@ -522,8 +526,8 @@ void RHIDCheckState()
 				iter = iter * 32768 / -min[a];
 		}
 		if (debugAxis && step % printOn == 0)
-			printf("%6d||", iter);
-			
+			printf("%6d", iter);
+					
 		norm[a] = iter;
 	}
 	if (debugAxis && step % printOn == 0)
@@ -537,7 +541,7 @@ void RHIDCheckState()
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 	GPIO_PinState s7_h_r = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 	GPIO_PinState s8_h_d = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
 	GPIO_PinState s9_h_l = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
@@ -561,16 +565,15 @@ void RHIDCheckState()
 	//			printf("1, 4: %d, %d", 
 	//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1), 
 	//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4));		
-	//		for (int i = 0; i < _num_buttons; ++i)
-	//		{
-	//			if (debugGpio && step % printOn == 0)
-	//				printf("[%d]:%d ", i, buttons[i]);
-	//			
-	//		}
+	if (debugGpio && step % printOn == 0)
+		printf("hat %d,%d,%d,%d buttons: %d,%d,%d,%d,%d", 
+			s6_h_u, s9_h_l, s8_h_d, s7_h_r,
+			s1_fire, s2_05, s3_03, s4_02, s5_04);
 		
 			
 	// h0 h1 h2 h3 b1 b2 b3 b4 b5 
 	int16_t bit = 0;
+	report.hat_and_buttons = 0;
 
 	if (s6_h_u)
 	{
@@ -595,7 +598,6 @@ void RHIDCheckState()
 	}
 	bit += 4;
 		
-	report.hat_and_buttons = 0;
 	report.hat_and_buttons |= s1_fire << bit++;
 	report.hat_and_buttons |= s2_05 << bit++;
 	report.hat_and_buttons |= s3_03 << bit++;
@@ -607,7 +609,7 @@ void RHIDCheckState()
 	report.throttle = (int16_t)norm[Th];
 	report.x = (int16_t)norm[X]; 
 	report.y = (int16_t)norm[Y]; 
-	report.z = (int16_t)norm[Z];
+	report.z = (int16_t)norm[R];
 		
 	//HAL_ADC_ConvCpltCallback(&hadc1);
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
