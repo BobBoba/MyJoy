@@ -4,7 +4,7 @@ I had had very old Logitech WingMan Extreme joystick for many years and after a 
 
 For ADC I choose 16 bits ADS1115 with 4 channels and connect to STM32 using I2C bus.
 
-Project for STM32CubeMx included.
+Project for STM32CubeMX included.
 
 Joystick has 4 axis, 4 position POV hat, 5 + 2 buttons.
 

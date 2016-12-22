@@ -50,7 +50,8 @@ const u_char INVERT_Th = 0;
 
 int step = -1;
 int printOn = 20;
-u_char debugAxis = 1;
+u_char debugRawAxis = 0; // to debug RAW values came from ADC, adjust potentiometers to avoid clipping
+u_char debugAxis = 0;
 u_char debugGpio = 0; 
 
 
@@ -326,7 +327,7 @@ void init()
 	}
 		
 	//SetInputMultiplexer(UNIPOLAR_AIN1_E + channel);
-	SetProgrammableGain(FULL_SCALE_4096_MV_E);
+	SetProgrammableGain(FULL_SCALE_2048_MV_E);
 	SetDataRate(DATA_RATE_860_SPS_E);
 	SetMode(CONTINUOUS_CONVERSION_MODE_E);
 	//SetMode(POWER_DOWN_SINGLE_SHOT_MODE_E);
@@ -453,15 +454,20 @@ void RHIDCheckState()
 	//if ((debugAxis || debugGpio) && step % printOn == 0)
 	//	printf("[%4d] ", step / printOn);
 
-	if (debugAxis && step % printOn == 0)
+	if ((debugAxis ||debugRawAxis) && step % printOn == 0)
 		printf("v/m/M/n: ");
 		
 	for (int a = 0; a < _num_axis; ++a)
 	{
-		if (debugAxis && step % printOn == 0 && a > 0)
+		if ((debugAxis || debugRawAxis) && step % printOn == 0 && a > 0)
 			printf(" | ");
 		
+		
 		int iter = GetMeasure(a);
+		
+		// 1. display raw value			
+		if (debugRawAxis && step % printOn == 0)
+			printf("%5d", iter);
 			
 		if (iter < 0)
 		{
@@ -570,16 +576,16 @@ void RHIDCheckState()
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
-	GPIO_PinState s2_05 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-	GPIO_PinState s1_fire = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+	GPIO_PinState s2_03 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+	GPIO_PinState s1_01 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
 	GPIO_PinState s6_h_u = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
-		
+//		
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET); 
-	GPIO_PinState s5_04 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
-	GPIO_PinState s4_02 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
-	GPIO_PinState s3_03 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+	GPIO_PinState s5_02 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+	GPIO_PinState s4_04 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
+	GPIO_PinState s3_05 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
 		
 	//		if (debugGpio && step % printOn == 0)
 	//			printf("1, 4: %d, %d", 
@@ -591,11 +597,12 @@ void RHIDCheckState()
 			s9_h_l,
 			s8_h_d,
 			s7_h_r,
-			s1_fire,
-			s2_05,
-			s3_03,
-			s4_02,
-			s5_04);
+			s1_01,
+			s5_02,
+			s2_03,
+			s4_04,
+			s3_05
+		);
 		
 			
 	// h0 h1 h2 h3 b1 b2 b3 b4 b5 
@@ -604,32 +611,32 @@ void RHIDCheckState()
 
 	if (s6_h_u)
 	{
-		report.hat_and_buttons |= 0;
+		report.hat_and_buttons = 0;
 	}
 	else if (s9_h_l)
 	{
-		report.hat_and_buttons |= 1;
+		report.hat_and_buttons = 1;
 	}
 	else if (s8_h_d)
 	{
-		report.hat_and_buttons |= 2;
+		report.hat_and_buttons = 2;
 	}
 	else if (s7_h_r)
 	{
-		report.hat_and_buttons |= 3;
+		report.hat_and_buttons = 3;
 	}
 	else
 	{
-		report.hat_and_buttons |= 4; // neutral
+		report.hat_and_buttons = 4; // neutral
 			
 	}
 	bit += 4;
 		
-	report.hat_and_buttons |= s1_fire << bit++;
-	report.hat_and_buttons |= s2_05 << bit++;
-	report.hat_and_buttons |= s3_03 << bit++;
-	report.hat_and_buttons |= s4_02 << bit++;
-	report.hat_and_buttons |= s5_04 << bit++;
+	report.hat_and_buttons |= s1_01 << bit++;
+	report.hat_and_buttons |= s5_02 << bit++;
+	report.hat_and_buttons |= s2_03 << bit++;
+	report.hat_and_buttons |= s4_04 << bit++;
+	report.hat_and_buttons |= s3_05 << bit++;
 	
 
 	
@@ -641,7 +648,7 @@ void RHIDCheckState()
 	//HAL_ADC_ConvCpltCallback(&hadc1);
 	USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t*)&report, sizeof(report));
 	
-	if ((debugAxis || debugGpio) && step % printOn == 0)
+	if ((debugRawAxis || debugAxis || debugGpio) && step % printOn == 0)
 		printf("\r\n");
 
 }
