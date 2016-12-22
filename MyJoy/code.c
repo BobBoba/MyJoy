@@ -562,41 +562,38 @@ void RHIDCheckState()
 //	}
 		
 		
-	// GPIO
-
+	// GPIO ports
 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_RESET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-	GPIO_PinState s7_h_r = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
+	HAL_Delay(1);
+	GPIO_PinState s7_h_l = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 	GPIO_PinState s8_h_d = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
-	GPIO_PinState s9_h_l = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
-		
+	GPIO_PinState s9_h_r = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);	
 		
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 
+	HAL_Delay(1);
 	GPIO_PinState s2_03 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 	GPIO_PinState s1_01 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
 	GPIO_PinState s6_h_u = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
-//		
+	
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_3, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET); 
+	HAL_Delay(1);
 	GPIO_PinState s5_02 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 	GPIO_PinState s4_04 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
 	GPIO_PinState s3_05 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
 		
-	//		if (debugGpio && step % printOn == 0)
-	//			printf("1, 4: %d, %d", 
-	//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1), 
-	//				HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_4));		
 	if (debugGpio && step % printOn == 0)
 		printf("hat %d,%d,%d,%d buttons: %d,%d,%d,%d,%d", 
 			s6_h_u,
-			s9_h_l,
+			s9_h_r,
 			s8_h_d,
-			s7_h_r,
+			s7_h_l,
 			s1_01,
 			s5_02,
 			s2_03,
@@ -613,7 +610,7 @@ void RHIDCheckState()
 	{
 		report.hat_and_buttons = 0;
 	}
-	else if (s9_h_l)
+	else if (s9_h_r)
 	{
 		report.hat_and_buttons = 1;
 	}
@@ -621,7 +618,7 @@ void RHIDCheckState()
 	{
 		report.hat_and_buttons = 2;
 	}
-	else if (s7_h_r)
+	else if (s7_h_l)
 	{
 		report.hat_and_buttons = 3;
 	}
