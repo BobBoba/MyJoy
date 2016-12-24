@@ -296,16 +296,16 @@ void init()
 	}
 	
 	  /*##-4- Put I2C peripheral in reception process ###########################*/  
-	while (HAL_I2C_Master_Receive_DMA(&hi2c1, (uint16_t)ADS1115_REMOTE_ADR, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)
-	{
-	  /* Error_Handler() function is called when Timeout error occurs.
-	     When Acknowledge failure occurs (Slave don't acknowledge its address)
-	     Master restarts communication */
-		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF)
-		{
-			Error_Handler();
-		}
-	}
+//	while (HAL_I2C_Master_Receive_DMA(&hi2c1, (uint16_t)ADS1115_REMOTE_ADR, (uint8_t *)aRxBuffer, RXBUFFERSIZE) != HAL_OK)
+//	{
+//	  /* Error_Handler() function is called when Timeout error occurs.
+//	     When Acknowledge failure occurs (Slave don't acknowledge its address)
+//	     Master restarts communication */
+//		if (HAL_I2C_GetError(&hi2c1) != HAL_I2C_ERROR_AF)
+//		{
+//			Error_Handler();
+//		}
+//	}
 
 
 	//ConfiugureReadyMode();
@@ -587,9 +587,13 @@ void RHIDCheckState()
 	GPIO_PinState s5_02 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0);
 	GPIO_PinState s4_04 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_1);
 	GPIO_PinState s3_05 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_2);
+	
+	// buttons on main board
+	GPIO_PinState s1 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
+	GPIO_PinState s2 = !HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7);
 		
 	if (debugGpio && step % printOn == 0)
-		printf("hat %d,%d,%d,%d buttons: %d,%d,%d,%d,%d", 
+		printf("hat %d,%d,%d,%d buttons: %d,%d,%d,%d,%d %d,%d", 
 			s6_h_u,
 			s9_h_r,
 			s8_h_d,
@@ -598,7 +602,9 @@ void RHIDCheckState()
 			s5_02,
 			s2_03,
 			s4_04,
-			s3_05
+			s3_05,
+			s1,
+			s2
 		);
 		
 			
@@ -634,6 +640,9 @@ void RHIDCheckState()
 	report.hat_and_buttons |= s2_03 << bit++;
 	report.hat_and_buttons |= s4_04 << bit++;
 	report.hat_and_buttons |= s3_05 << bit++;
+	
+	report.hat_and_buttons |= s1 << bit++;
+	report.hat_and_buttons |= s2 << bit++;
 	
 
 	
